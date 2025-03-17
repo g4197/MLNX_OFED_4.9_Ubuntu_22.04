@@ -891,7 +891,7 @@ if ($use_upstream_libs) {
 
 # OS specific package names
 my $module_tools = "kmod";
-my $libssl = "libssl1.0.0";
+my $libssl = "libssl3";
 my $libssl_devel = "libssl-dev";
 my @rdmacore_python = qw/cython3 python3-dev/;
 my @libsystemd_dev = qw/libsystemd-dev/;
@@ -907,15 +907,15 @@ if ($distro =~ /ubuntu1[0-4] | debian[5-6]/x) {
 if ( $distro =~ /debian6|ubuntu1[0-2]/) {
 	$module_tools = "module-init-tools";
 }
-if ( $distro =~ /debian6\.0/) {
-	$libssl = "libssl0.9.8";
-}
-if ($distro =~ /debian9/) {
-	$libssl = "libssl1.0.2";
-	$libssl_devel = "libssl1.0-dev";
-} elsif ($distro =~ /ubuntu(19|2) | debian1[0-9]/x) {
-	$libssl = "libssl1.1";
-}
+# if ( $distro =~ /debian6\.0/) {
+# 	$libssl = "libssl0.9.8";
+# }
+# if ($distro =~ /debian9/) {
+# 	$libssl = "libssl1.0.2";
+# 	$libssl_devel = "libssl1.0-dev";
+# } elsif ($distro =~ /ubuntu(19|2) | debian1[0-9]/x) {
+# 	$libssl = "libssl1.1";
+# }
 
 my $python2 = "python2";
 if ($distro =~ /ubuntu18.04/) {
@@ -952,10 +952,10 @@ if ($distro =~ /ubuntu14 | debian8/x) {
 	$openjdk = "openjdk-8-jdk";
 }
 
-my $libgfortran = "libgfortran4";
-if ($distro =~ /ubuntu1[4-7] | debian([89])/x) {
-	$libgfortran = "libgfortran3";
-}
+my $libgfortran = "libgfortran5";
+# if ($distro =~ /ubuntu1[4-7] | debian([89])/x) {
+# 	$libgfortran = "libgfortran3";
+# }
 
 if ($with_ovs_dpdk and ($arch !~ /x86_64|aarch64/ or $distro !~ /ubuntu18.04 | ubuntu20.04/x)) {
 	print YELLOW "\nWARNING: The '--ovs-dpdk' option is supported only on Ubuntu 18.04 or 20.04, x86_64 and aarch64. Disabling...", RESET "\n";
@@ -1648,7 +1648,7 @@ my %packages_info = (
 				selected => 0, installed => 0, deb_exist => 0,
 				available => 0, mode => "kernel",
 				dist_req_build => ["dkms", "quilt", "make", "gcc"],
-				dist_req_inst => ["dkms", "quilt", "make", "gcc", "coreutils", "pciutils", "grep", "perl", "procps", "$module_tools", "lsof"],
+				dist_req_inst => ["dkms", "quilt", "make", "gcc", "coreutils", "pciutils", "grep", "perl", "procps", "$module_tools", "lsof", "gcc-9", "g++-9"],
 				ofa_req_build => ["$mlnX_ofed_kernel", "mlnx-ofed-kernel-utils"],
 				ofa_req_inst => ["$mlnX_ofed_kernel", "mlnx-ofed-kernel-utils"],
 				soft_req => ["ofed-scripts"],
@@ -1658,7 +1658,7 @@ my %packages_info = (
 				selected => 0, installed => 0, deb_exist => 0,
 				available => 1, mode => "kernel",
 				dist_req_build => ["dkms", "quilt", "make", "gcc"],
-				dist_req_inst => ["dkms", "quilt", "make", "gcc", "coreutils", "pciutils", "grep", "perl", "procps", "$module_tools", "lsof"],
+				dist_req_inst => ["dkms", "quilt", "make", "gcc", "coreutils", "pciutils", "grep", "perl", "procps", "$module_tools", "lsof", "gcc-9", "g++-9"],
 				ofa_req_build => [],
 				ofa_req_inst => ["ofed-scripts", "mlnx-ofed-kernel-utils"],
 				soft_req => ["ofed-scripts"],
@@ -2380,7 +2380,7 @@ sub is_installed_deb
 {
 	my $name = shift @_;
 
-	my $installed_deb = `$DPKG_QUERY -l $name 2> /dev/null | awk '/^[rhi][iU]/{print \$2}'`;
+	my $installed_deb = `$DPKG_QUERY -l $name 2> /dev/null | awk '/^[rhi][iU]/{print $2}'`;
 
 	return ($installed_deb) ? 1 : 0;
 }
@@ -2389,7 +2389,7 @@ sub get_all_matching_installed_debs
 {
 	my $name = shift @_;
 
-	my $installed_debs = `dpkg-query -l "*$name*" 2> /dev/null | awk '/^[rhi][iU]/{print \$2}' | sed -e 's/:.*//g'`;
+	my $installed_debs = `dpkg-query -l "*$name*" 2> /dev/null | awk '/^[rhi][iU]/{print $2}' | sed -e 's/:.*//g'`;
 	return (split "\n", $installed_debs);
 }
 
@@ -3574,7 +3574,7 @@ sub install_selected
 				ex1("$package_pre_build_script{$name}");
 			}
 
-			ex_deb_build($parent, "$BUILD_ENV $DPKG_BUILDPACKAGE -us -uc $build_args");
+			ex_deb_build($parent, "CC=gcc-9 CXX=g++-9 $BUILD_ENV $DPKG_BUILDPACKAGE -us -uc $build_args");
 			ex "cp ../*.deb $target_dir/";
 
 			if (exists $package_post_build_script{$name}) {
