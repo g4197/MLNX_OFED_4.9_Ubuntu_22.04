@@ -1,0 +1,223 @@
+mstflint (4.14.0-3.49710) unstable; urgency=low
+
+  * Fixed format-security warning in flint's checkFwVersion.
+
+ -- Dan Goldberg <dang@unknown>  Thu, 18 Jun 2020 00:00:00 +0200
+
+mstflint (4.14.0-2) unstable; urgency=low
+
+  * Updated from MFT-4.14.0. Added BlueField-2 adapter cards support.
+
+ -- Kostiantyn Maksatov <kostiantynm@unknown>  Thu, 11 Jun 2020 15:55:46 +0200
+
+mstflint (4.14.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.14.0
+
+ -- Matan Eliyahu <matanel@unknown>  Tue, 31 Mar 2020 00:00:00 +0200
+
+mstflint (4.13.3-2) unstable; urgency=low
+
+  * Updated from MFT-4.13.3
+
+ -- Matan Eliyahu <matanel@unknown>  Wed, 08 Jan 2020 00:00:00 +0200
+
+mstflint (4.13.3-1) unstable; urgency=low
+
+  * Updated from MFT-4.13.3. Added new tools: mstresourcedump.
+
+ -- Matan Eliyahu <matanel@unknown>  Tue, 31 Dec 2019 00:00:00 +0200
+
+mstflint (4.13.1-1) unstable; urgency=low
+
+  * Updated from MFT-4.13.0
+
+ -- Matan Eliyahu <matanel@unknown>  Thu, 10 Oct 2019 00:00:00 +0200
+
+mstflint (4.13.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.13.0
+
+ -- Matan Eliyahu <matanel@unknown>  Wed, 02 Oct 2019 00:00:00 +0200
+
+mstflint (4.12.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.12.0
+
+ -- Matan Eliyahu <matanel@unknown>  Thu, 13 Jun 2019 00:00:00 +0200
+
+mstflint (4.11.0-5) unstable; urgency=low
+
+  * Updated from MFT-4.11.1
+
+ -- Dan Goldberg <dang@unknown>  Wed, 01 May 2019 00:00:00 +0200
+
+mstflint (4.11.0-4) unstable; urgency=low
+
+  * Updated from MFT-4.11.1
+
+ -- Dan Goldberg <dang@unknown>  Sun, 07 Apr 2019 00:00:00 +0200
+
+mstflint (4.11.0-3) unstable; urgency=low
+
+  * Updated from MFT-4.11.1
+
+ -- Dan Goldberg <dang@unknown>  Mon, 11 Feb 2019 00:00:00 +0200
+
+mstflint (4.11.0-2) unstable; urgency=low
+
+  * Updated from MFT-4.11.0
+
+ -- Dan Goldberg <dang@unknown>  Thu, 31 Jan 2019 00:00:00 +0200
+
+mstflint (4.11.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.11.0. Added new tools: mlxarchive and mstprivhost.
+
+ -- Dan Goldberg <dang@unknown>  Wed, 21 Nov 2018 16:00:00 +0200
+
+mstflint (4.10.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.10.0
+
+ -- Dan Goldberg <dang@unknown>  Sun, 01 Jul 2018 21:02:03 +0200
+
+mstflint (4.10.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.10.0
+
+ -- Adham Masarwah <adham@unknown>  Mon, 02 Apr 2018 15:35:46 +0200
+
+mstflint (4.9.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.9.0
+
+ -- Adham Masarwah <adham@unknown>  Mon, 25 Dec 2017 11:21:46 +0200
+
+
+mstflint (4.8.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.8.0
+
+ -- Adham Masarwah <adham@unknown>  Wed, 18 Oct 2017 17:52:33 +0200
+
+
+mstflint (4.7.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.7.0
+
+ -- Adrian Chiris <adrianc@unknown>  Mon, 08 May 2017 11:00:33 +0200
+
+
+mstflint (4.6.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.6.0
+
+ -- Adham Masarwah <adham@unknown>  Wed, 11 Jan 2017 20:01:33 +0200
+
+
+mstflint (4.5.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.5.0
+  * Notice: as of mstflint-4.6.0 the scrip, hca_ofed_self_test.ofed will no longer be a part of mstflint,
+                 Instead it will be a part of Mellanox OFED package.
+
+ -- Adrian Chiris <adrianc@unknown>  Mon, 05 Sep 2016 15:31:33 +0200
+
+
+mstflint (4.4.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.4.0
+
+ -- Adrian Chiris <adrianc@unknown>  Tue, 24 May 2016 15:31:33 +0200
+
+
+mstflint (4.3.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.4.0 initial release
+
+ -- Adrian Chiris <adrianc@unknown>  Wed, 23 Mar 2016 15:31:33 +0200
+
+
+mstflint (4.3.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.3.0
+
+ -- Adrian Chiris <adrianc@unknown>  Mon, 11 Jan 2016 15:31:33 +0200
+
+
+mstflint (4.1.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.1.0
+
+ -- Adrian Chiris <adrianc@unknown>  Wed, 26 Aug 2015 15:31:33 +0200
+
+
+mstflint (4.0.1-1) unstable; urgency=low
+
+  * Updated from MFT-4.0.1
+
+ -- Adrian Chiris <adrianc@unknown>  Wed, 03 Jun 2015 13:38:33 +0200
+
+
+mstflint (4.0.0-1) unstable; urgency=low
+
+  * Updated from MFT-4.0.0
+
+ -- Adrian Chiris <adrianc@unknown>  Sun, 19 Apr 2015 16:17:33 +0200
+ 
+ 
+mstflint (4.0.0) unstable; urgency=low
+
+  * Updated from MFT-4.0.0 initial release
+
+ -- Adrian Chiris <adrianc@unknown>  Thu, 5 Feb 2015 10:20:33 +0200
+ 
+ 
+mstflint (3.8.0) unstable; urgency=low
+
+  * Updated from MFT-3.8.0
+
+ -- Adrian Chiris <adrianc@unknown>  Mon, 17 Nov 2014 09:00:33 +0200
+
+
+mstflint (3.7.1) unstable; urgency=low
+
+  * Updated from MFT-3.7.1
+
+ -- Adrian Chiris <adrianc@unknown>  Mon, 12 Oct 2014 09:00:33 +0200
+
+
+mstflint (3.7.0) unstable; urgency=low
+
+  * Updated from MFT-3.7.0
+
+ -- Adrian Chiris <adrianc@unknown>  Mon, 28 Jul 2014 09:00:33 +0200
+
+
+mstflint (3.7.0) unstable; urgency=low
+
+  * Updated from MFT-3.7.0 initial relese
+
+ -- Adrian Chiris <adrianc@unknown>  Sun, 3 Jun 2014 14:08:33 +0200
+
+
+mstflint (3.6.0) unstable; urgency=low
+
+  * Updated from MFT-3.6.0
+
+ -- Adrian Chiris <adrianc@unknown>  Thu, 3 Apr 2014 19:09:33 +0200
+
+
+mstflint (3.5.0) unstable; urgency=low
+
+  * Updated from MFT-3.5.0
+
+ -- Omer Dagan <omerd@unknown>  Tue, 25 Dec 2013 16:49:33 +0200
+
+
+mstflint (3.0) unstable; urgency=low
+
+  * Initial Debian release
+
+ -- Omer Dagan <omerd@unknown>  Sun, 24 Jan 2013 16:49:33 +0200
