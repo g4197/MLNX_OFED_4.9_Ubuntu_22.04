@@ -1,0 +1,674 @@
+Package: ibacm
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: foreign
+Priority: optional
+Section: net
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 252
+Depends: lsb-base (>= 3.2-14~), rdma-core (>= 15), libc6 (>= 2.17), libibumad3 (>= 1.3.9), libibverbs1 (>= 20), libnl-3-200 (>= 3.2.7), libnl-route-3-200 (>= 3.2.7), libsystemd0
+Filename: ./ibacm_50mlnx1-1.49710_amd64.deb
+Size: 80336
+MD5sum: 4b516436c9783f9f8d19d380a13c0296
+SHA1: 7b4422b546e083570cc0a5fdbb8a01d2d9e634a1
+SHA256: c9acf970c53667c544442761bdd9fb3bc061e1faa77640f1154b7be14299b86a
+SHA512: c9dc9d0bb2abbcff23051e0b2f9db2127573e428a3b8b1c185067435af4e7e5110dac5eaad0ddd217a4dc71bfff1281a64caee408f1f13232e0104d8da9a7588
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: InfiniBand Communication Manager Assistant (ACM)
+ The IB ACM implements and provides a framework for name, address, and
+ route (path) resolution services over InfiniBand.
+ It is intended to address connection setup scalability issues running
+ MPI applications on large clusters.  The IB ACM provides information
+ needed to establish a connection, but does not implement the CM protocol.
+ A primary user of the ibacm service is the librdmacm library.
+
+Package: ibverbs-providers
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: net
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 417
+Provides: libefa1, libipathverbs1, libmlx4-1, libmlx5-1, libmthca1
+Depends: libc6 (>= 2.14), libibverbs1 (>= 25)
+Breaks: ibacm-dev (<< 43), libipathverbs1, libmlx4-1, libmlx5-1, libmthca1
+Replaces: ibacm-dev (<< 43), libipathverbs1, libmlx4-1, libmlx5-1, libmthca1
+Filename: ./ibverbs-providers_50mlnx1-1.49710_amd64.deb
+Size: 131020
+MD5sum: 0b52ed34ba75be61c3dd44bfab8861bd
+SHA1: cb4372517e2f5077e1628a55640ad997bee07407
+SHA256: 123d3b242c7e72c8a4fe32f74a2d8f766a9223d19c7041beedf0a2d40aac830c
+SHA512: c64bb2b4a248cc157d2d80e8ef31957e6e3696e70bd3322cb76db34a699cd1f5a4dd9876e36e92b6069a470adf7f0205fd244da20bc6bc8ffd1d97be31013d9c
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: User space provider drivers for libibverbs
+ libibverbs is a library that allows userspace processes to use RDMA
+ "verbs" as described in the InfiniBand Architecture Specification and
+ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
+ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
+ high-throughput, low-latency networking technology.  InfiniBand host
+ channel adapters (HCAs) and iWARP NICs commonly support direct
+ hardware access from userspace (kernel bypass), and libibverbs
+ supports this when available.
+ .
+ A RDMA driver consists of a kernel portion and a user space portion.
+ This package contains the user space verbs drivers:
+ .
+  - mlx4: Mellanox ConnectX-3 InfiniBand HCAs
+  - mlx5: Mellanox Connect-IB/X-4+ InfiniBand HCAs
+
+Package: ibverbs-utils
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: foreign
+Priority: optional
+Section: net
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 267
+Depends: libc6 (>= 2.14), libibverbs1 (>= 24)
+Filename: ./ibverbs-utils_50mlnx1-1.49710_amd64.deb
+Size: 54780
+MD5sum: bebe92ccc2cebb7ecb66c73a5b5d6857
+SHA1: d3df650cee95512ec1970415b91e54012776912c
+SHA256: 42faea6a37a618f7c6d46d5376abdf703706acb27fd09c0fcfa1bc115e2c9a5d
+SHA512: c78dfac9d72474563d6e79379ac7086e36c6892bc6cb6d75c31afd75ca3df4b9b94d35c3f62f4b5aba1252453062335e003db7ff6627bed15e2b050602523ae3
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Examples for the libibverbs library
+ libibverbs is a library that allows userspace processes to use RDMA
+ "verbs" as described in the InfiniBand Architecture Specification and
+ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
+ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
+ high-throughput, low-latency networking technology.  InfiniBand host
+ channel adapters (HCAs) and iWARP NICs commonly support direct
+ hardware access from userspace (kernel bypass), and libibverbs
+ supports this when available.
+ .
+ This package contains useful libibverbs1 example programs such as
+ ibv_devinfo, which displays information about InfiniBand devices.
+
+Package: infiniband-diags
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: foreign
+Priority: optional
+Section: net
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 938
+Provides: infiniband-diags-compat
+Depends: libibnetdisc5 (= 50mlnx1-1.49710), perl:any, libc6 (>= 2.17), libibmad5 (>= 1.3.12), libibumad3 (>= 3.2.30)
+Conflicts: infiniband-diags-compat
+Replaces: infiniband-diags-compat
+Filename: ./infiniband-diags_50mlnx1-1.49710_amd64.deb
+Size: 155700
+MD5sum: d2e0251d2bc362d5404e7aaa72ba234f
+SHA1: f6786d8a69d7640e29367038f6efe6fb41c82649
+SHA256: e030037ec442c80d2f8584875d27fb5a43ef165edf901c8ff743987e1c0405a2
+SHA512: b7c00b8ca09ac41f761a4e752bfb3e83670d587d1dc26081c72d1396a6232f618f544da4d4ff7bdd90261f6f1ba93eda7afff9f85a20f3eb9680aa4bd8ebb96f
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: InfiniBand diagnostic programs
+ InfiniBand is a switched fabric communications link used in
+ high-performance computing and enterprise data centers. Its features
+ include high throughput, low latency, quality of service and
+ failover, and it is designed to be scalable.
+ .
+ This package provides diagnostic programs and scripts needed to
+ diagnose an InfiniBand subnet.
+
+Package: libibmad5-dbg
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: extra
+Section: debug
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 162
+Depends: libibmad5 (= 50mlnx1-1.49710)
+Filename: ./libibmad5-dbg_50mlnx1-1.49710_amd64.deb
+Size: 110244
+MD5sum: 0f2b8d49b804f9c135edde08b47d1dea
+SHA1: c0c8d8e520cf0da49159c2459c630a7d4f18e4ca
+SHA256: 7e3a3b8753f8b3794ff6b933c5f88441da60ac90b1bccaf1e22775dc418cb872
+SHA512: ca87121bc81b94ef8b323eca7a73b01a1d9a575d5aa3b408e2f314ea7a9a2cd2b859054a5dc89df75d4215a2c272f89b648360dc50d6d484f1c46b437c5c3e5e
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Infiniband Management Datagram (MAD) library
+ libibmad provides low layer InfiniBand functions for use by the
+ Infiniband diagnostic and management programs. These include
+ Management Datagrams (MAD), Subnet Administration (SA), Subnet
+ Management Packets (SMP) and other basic functions.
+ .
+ This package contains the debug symbols associated with
+ libibmad5. They will automatically be used by gdb for debugging
+ libibmad-related issues.
+Build-Ids: d6d3e697501af006c1beefcbf4640e92199520de
+
+Package: libibmad5
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: libs
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 161
+Depends: libc6 (>= 2.14), libibumad3 (>= 1.3.9)
+Filename: ./libibmad5_50mlnx1-1.49710_amd64.deb
+Size: 39820
+MD5sum: 8299e6dbb7f65e8ba7ddf3743aac0a27
+SHA1: bafc83864af63d4ac1eb6ce6471517158a9693ca
+SHA256: b07824a6d6aa28d91f17415528427a07f0a388bc8cc7b56945a9f7a65b2b56f2
+SHA512: f408866940da453e87ff13fc6865b85de4cb3e27e650fd8d8e9b13f893a5397df9d9783ca10011266c5d09a958892b6bff1a23974386c14acb2b3171cdc40eb7
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Infiniband Management Datagram (MAD) library
+ libibmad provides low layer InfiniBand functions for use by the
+ Infiniband diagnostic and management programs. These include
+ Management Datagrams (MAD), Subnet Administration (SA), Subnet
+ Management Packets (SMP) and other basic functions.
+ .
+ This package contains the shared library.
+
+Package: libibnetdisc5-dbg
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: extra
+Section: debug
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 134
+Depends: libibnetdisc5 (= 50mlnx1-1.49710)
+Filename: ./libibnetdisc5-dbg_50mlnx1-1.49710_amd64.deb
+Size: 94496
+MD5sum: cafc50c00d4da39d34ebecc21441d809
+SHA1: de24f382d0545ed3f149702ce2e6c1e67c9be752
+SHA256: b9770b88f66caaafcc4224e7c8620c3c2b8ba151a9bf1b23f0a7ab3e569e6144
+SHA512: 4720bd02eae013d3b171c5c475328ee298d1962eaa11daa982476587813cd51d82c831e33b519c7990a861d5fcab2e911ccf4109c791dfb518e9bbaec8b8c803
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Debug symbols for the libibnetdisc library
+ InfiniBand is a switched fabric communications link used in
+ high-performance computing and enterprise data centers. Its features
+ include high throughput, low latency, quality of service and
+ failover, and it is designed to be scalable.
+ .
+ This package contains the debug symbols associated with
+ libibnetdisc5. They will automatically be used by gdb for debugging
+ libibnetdisc-related issues.
+Build-Ids: 3c7b55dd9671d44e4110495d01a0afe928bebabf
+
+Package: libibnetdisc5
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: libs
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 99
+Depends: libc6 (>= 2.4), libibmad5 (>= 1.3.11), libibumad3 (>= 1.3.9)
+Filename: ./libibnetdisc5_50mlnx1-1.49710_amd64.deb
+Size: 31788
+MD5sum: d28b52d78e43413b5082ab30e66ad61d
+SHA1: ecb77891df768934f620a9e01e48154fa5820d4e
+SHA256: 53fa813849f789081f0908d765a8f68c2254db3bc902abf3beff64556f958602
+SHA512: c5564a431397d681f71edca15347a4c628a6e9b6a74a993a6b586f390b3ce755a53735da89941884d6f9a48e609bba937fe87e468d1324009ca0c02f239a4fed
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: InfiniBand diagnostics library
+ InfiniBand is a switched fabric communications link used in
+ high-performance computing and enterprise data centers. Its features
+ include high throughput, low latency, quality of service and
+ failover, and it is designed to be scalable.
+ .
+ This package provides libraries required by the InfiniBand
+ diagnostic programs.
+
+Package: libibumad-dev
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: libdevel
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 185
+Provides: libibumad-devel
+Depends: libibumad3 (= 50mlnx1-1.49710)
+Breaks: libibumad (<< 44), libibumad-devel (<< 44)
+Replaces: libibumad (<< 44), libibumad-devel (<< 44)
+Filename: ./libibumad-dev_50mlnx1-1.49710_amd64.deb
+Size: 54352
+MD5sum: f147ad5745507f9a04b7b7bfb44127e1
+SHA1: e5aa190bb2c6efa28ee467915c1ee4c8a48950f7
+SHA256: 9dfd2b6fc5d5ae2c2f0e39915a8b1d9d56d015c2d35cfa43340408e5d30bce34
+SHA512: 0cc7868818e3cf63fe513bbabb6293f73098f082aa161450d0c39ee660db6467d643103af592ef7c9765a2aa48e556a058eff0d4cafeb3a406cb3a4dbf3a65ad
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Development files for libibumad
+ libibumad provides userspace Infiniband Management Datagram (uMAD)
+ functions which sit on top of the uMAD modules in the kernel.
+ These are used by InfiniBand diagnostic and management tools.
+ .
+ This package is needed to compile programs against libibumad.
+ It contains the header files and static libraries (optionally)
+ needed for compiling.
+
+Package: libibumad3-dbg
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: extra
+Section: debug
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 86
+Depends: libibumad3 (= 50mlnx1-1.49710)
+Filename: ./libibumad3-dbg_50mlnx1-1.49710_amd64.deb
+Size: 48492
+MD5sum: 7d0f0d0eef1ea41eeefc9b99805d9864
+SHA1: c26f8769f530724d95f04e3a06880fbb5dfac0c9
+SHA256: 3a7ae1e6446715aa754f6274072dc4e29455a976be580347194fa04664e898fe
+SHA512: da641b6253d0f0e90e6407c6919859489eb9cada2b8551a4143a267acf750e1c07fa673111fe0d348114019233bb39d70657d1826200d489b2c369a73dda5307
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Debug symbols for the libibumad3 library
+ libibumad provides userspace Infiniband Management Datagram (uMAD)
+ functions which sit on top of the uMAD modules in the kernel.
+ These are used by InfiniBand diagnostic and management tools.
+ .
+ This package contains the debug symbols associated with
+ libibumad3. They will automatically be used by gdb for debugging
+ libibumad-related issues.
+Build-Ids: 455b76eeb274873dc07862bc2feca69bf53c45be
+
+Package: libibumad3
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: libs
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 88
+Provides: libibumad
+Depends: libc6 (>= 2.4)
+Filename: ./libibumad3_50mlnx1-1.49710_amd64.deb
+Size: 26468
+MD5sum: 4e4f0da80609a51c1bf60317979c56fa
+SHA1: 9762cdea60246360a4263ee0e72b488d0d48cc6d
+SHA256: b22d1680a81517f8eaf00e5dcb7c00f4988c534b447d20108305b7f746099b83
+SHA512: 081f0d9eb56ed666a9b764aeead76bf9cc56c5034752cc3e1ad2ebdd514e7e033370d51f63dd5fbcc5980ea018217f230db4749ae05ed49c271205cb14078da1
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: InfiniBand Userspace Management Datagram (uMAD) library
+ libibumad provides userspace Infiniband Management Datagram (uMAD)
+ functions which sit on top of the uMAD modules in the kernel.
+ These are used by InfiniBand diagnostic and management tools.
+ .
+ This package contains the shared library.
+
+Package: libibverbs-dev
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: libdevel
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 1180
+Depends: ibverbs-providers (= 50mlnx1-1.49710), libibverbs1 (= 50mlnx1-1.49710), libnl-3-dev, libnl-route-3-dev
+Filename: ./libibverbs-dev_50mlnx1-1.49710_amd64.deb
+Size: 331948
+MD5sum: 735bde4ef609f923cefec812b4b4dd29
+SHA1: 65a9bdbb0ccad987a166f9b7347a2fae42c5fcf1
+SHA256: d8e1207cbe1f14b31d24dbf5305cb47605f7df37fc642bc50600a7fcea4669dd
+SHA512: a9c1bf06360de3dbc378eeb8ebee97b87f75eca337a78853d04750dcc9db7cd53ef2f4e43d0bf3d10b7f0891ce80ae5cc0366efd73daa2c785c0b05269580b45
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Development files for the libibverbs library
+ libibverbs is a library that allows userspace processes to use RDMA
+ "verbs" as described in the InfiniBand Architecture Specification and
+ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
+ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
+ high-throughput, low-latency networking technology.  InfiniBand host
+ channel adapters (HCAs) and iWARP NICs commonly support direct
+ hardware access from userspace (kernel bypass), and libibverbs
+ supports this when available.
+ .
+ This package is needed to compile programs against libibverbs1.
+ It contains the header files and static libraries (optionally)
+ needed for compiling.
+
+Package: libibverbs1-dbg
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: extra
+Section: debug
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 394
+Depends: libibverbs1 (= 50mlnx1-1.49710)
+Filename: ./libibverbs1-dbg_50mlnx1-1.49710_amd64.deb
+Size: 338356
+MD5sum: ca7db0ce088211f7426ee576887249ba
+SHA1: 9d514eecef426c3d370e4f2a7c4c2952215c0f60
+SHA256: da1699003a6f9f7c2e247fa3c48d2ae28776cf8eee7e531115fa58acf8fbafd0
+SHA512: fa403c61a5f7214feeec38fa819c0f036c2b109d86b0449118cfdc287ba7d131fd5c3087cddcee969c801c99488fffdad033927fd9335305eaf7121a97d5b8df
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Debug symbols for the libibverbs library
+ libibverbs is a library that allows userspace processes to use RDMA
+ "verbs" as described in the InfiniBand Architecture Specification and
+ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
+ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
+ high-throughput, low-latency networking technology.  InfiniBand host
+ channel adapters (HCAs) and iWARP NICs commonly support direct
+ hardware access from userspace (kernel bypass), and libibverbs
+ supports this when available.
+ .
+ This package contains the debug symbols associated with
+ libibverbs1. They will automatically be used by gdb for debugging
+ libibverbs-related issues.
+Build-Ids: a1749e6762e78b65769fe349df4cb9b1bad9db23
+
+Package: libibverbs1
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: libs
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 169
+Depends: adduser, libc6 (>= 2.15), libnl-3-200 (>= 3.2.7), libnl-route-3-200 (>= 3.2.7)
+Recommends: ibverbs-providers
+Breaks: ibverbs-providers (<< 25~)
+Filename: ./libibverbs1_50mlnx1-1.49710_amd64.deb
+Size: 53568
+MD5sum: db55e89d9f0f8744dd4c8d48fb317147
+SHA1: 66a34ff0ff91aa756af18109c3422ab91590996a
+SHA256: 3a681b91e53a1eac6e56d0ff6af8213238190753338c52905e16e923ef45baf1
+SHA512: 6e760c1f5352f61a8c6ffa2a930f46f731436241486cd9b6ac67755e3aeccf498cccc1eeb1701f6b12660b64899c09bf26df9207288951272084510cd9d385e6
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Library for direct userspace use of RDMA (InfiniBand/iWARP)
+ libibverbs is a library that allows userspace processes to use RDMA
+ "verbs" as described in the InfiniBand Architecture Specification and
+ the RDMA Protocol Verbs Specification.  iWARP ethernet NICs support
+ RDMA over hardware-offloaded TCP/IP, while InfiniBand is a
+ high-throughput, low-latency networking technology.  InfiniBand host
+ channel adapters (HCAs) and iWARP NICs commonly support direct
+ hardware access from userspace (kernel bypass), and libibverbs
+ supports this when available.
+ .
+ For this library to be useful, a device-specific plug-in module
+ should also be installed.
+ .
+ This package contains the shared library.
+
+Package: librdmacm-dev
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: libdevel
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 293
+Depends: libibverbs-dev, librdmacm1 (= 50mlnx1-1.49710)
+Filename: ./librdmacm-dev_50mlnx1-1.49710_amd64.deb
+Size: 114184
+MD5sum: 10f841a94087bf66f8b3fe0ad1f41b10
+SHA1: 1aac037c06ba815851d02f150380a873efcb6292
+SHA256: 12ae294e32667d12c0350dadb2b096c8b83d7e0d3d6851a2fd52ad798377ecdc
+SHA512: 37a9da9c3a1f665a43852d18eae93e47e4f16d90370a825acdcaaeb66c64d1e8f6a76a05e27ebaf62e788db3897cf6b9a34e99b0d2e9666e9f30458a165cf256
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Development files for the librdmacm library
+ librdmacm is a library that allows applications to set up reliable
+ connected and unreliable datagram transfers when using RDMA adapters.
+ It provides a transport-neutral interface in the sense that the same
+ code can be used for both InfiniBand and iWARP adapters.  The
+ interface is based on sockets, but adapted for queue pair (QP) based
+ semantics: communication must use a specific RDMA device, and data
+ transfers are message-based.
+ .
+ librdmacm only provides communication management (connection setup
+ and tear-down) and works in conjunction with the verbs interface
+ provided by libibverbs, which provides the interface used to actually
+ transfer data.
+ .
+ This package is needed to compile programs against librdmacm1.
+ It contains the header files and static libraries (optionally)
+ needed for compiling.
+
+Package: librdmacm1-dbg
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: extra
+Section: debug
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 272
+Depends: librdmacm1 (= 50mlnx1-1.49710)
+Filename: ./librdmacm1-dbg_50mlnx1-1.49710_amd64.deb
+Size: 222732
+MD5sum: 1e2025ab5a3e708ee0e0bab26e0b8e0e
+SHA1: 4beab9d57adab0fa69019dd4ca7f1ea1e58f2598
+SHA256: c246f0f8fdcb6bd0475e9b800fc4151fa9bedf1761e45931e5ae14d1e0b65654
+SHA512: 320d8acfac4259ea17aceb050e368f9bcfe412b781f285fb9f3dbcb45226fac0e93965fdd904f57d681532845986f9236cd7a00c605790a09e53735c130ade9f
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Debug symbols for the librdmacm library
+ librdmacm is a library that allows applications to set up reliable
+ connected and unreliable datagram transfers when using RDMA adapters.
+ It provides a transport-neutral interface in the sense that the same
+ code can be used for both InfiniBand and iWARP adapters.  The
+ interface is based on sockets, but adapted for queue pair (QP) based
+ semantics: communication must use a specific RDMA device, and data
+ transfers are message-based.
+ .
+ librdmacm only provides communication management (connection setup
+ and tear-down) and works in conjunction with the verbs interface
+ provided by libibverbs, which provides the interface used to actually
+ transfer data.
+ .
+ This package contains the debug symbols associated with
+ librdmacm1. They will automatically be used by gdb for debugging
+ librdmacm-related issues.
+Build-Ids: b20a449a82963dc9f89adb37622f7d3e466c7844 ba6107fb3a14fe4d7e8d2ed8800dadf94ed3c9bc
+
+Package: librdmacm1
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: libs
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 190
+Depends: libc6 (>= 2.17), libibverbs1 (>= 20), libnl-3-200 (>= 3.2.7)
+Filename: ./librdmacm1_50mlnx1-1.49710_amd64.deb
+Size: 61020
+MD5sum: bce62baa0105b4f4dc4b15a9ad4d9f25
+SHA1: e0e46d0b2a975aae43b5b07d161451a09381a893
+SHA256: 42bd01d2349f758b1a527d5514ec01ca0948250d43bb9d8f36421f285f0589d5
+SHA512: 52bc6f8a98aea44cba40bba1311512600d13f5778a7e500aa101c87eb4dc4c2b6ad17657aeb759baa435d34c1648176fd46f5c91a7a87abd5952de8b43dfc80a
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Library for managing RDMA connections
+ librdmacm is a library that allows applications to set up reliable
+ connected and unreliable datagram transfers when using RDMA adapters.
+ It provides a transport-neutral interface in the sense that the same
+ code can be used for both InfiniBand and iWARP adapters.  The
+ interface is based on sockets, but adapted for queue pair (QP) based
+ semantics: communication must use a specific RDMA device, and data
+ transfers are message-based.
+ .
+ librdmacm only provides communication management (connection setup
+ and tear-down) and works in conjunction with the verbs interface
+ provided by libibverbs, which provides the interface used to actually
+ transfer data.
+ .
+ This package contains the shared library.
+
+Package: mlnx-ofed-dpdk-upstream-libs-user-only
+Architecture: all
+Version: 4.9-7.1.0.0
+Priority: extra
+Section: utils
+Maintainer: Alaa Hleihel <alaa@mellanox.com>
+Installed-Size: 12
+Depends: python3-pyverbs (>= 50mlnx1-1.49710), libibverbs1 (>= 50mlnx1-1.49710), libibumad3 (>= 50mlnx1-1.49710), rdmacm-utils (>= 50mlnx1-1.49710), libibumad-dev (>= 50mlnx1-1.49710), libibverbs-dev (>= 50mlnx1-1.49710), librdmacm1 (>= 50mlnx1-1.49710), ibacm (>= 50mlnx1-1.49710), ibverbs-utils (>= 50mlnx1-1.49710), ibverbs-providers (>= 50mlnx1-1.49710), rdma-core (>= 50mlnx1-1.49710), librdmacm-dev (>= 50mlnx1-1.49710)
+Filename: ./mlnx-ofed-dpdk-upstream-libs-user-only_4.9-7.1.0.0_all.deb
+Size: 2748
+MD5sum: cf2053dfcd525a4e031a367613ba7036
+SHA1: 8e6e766827909047fc7658300fae0550a61811dd
+SHA256: 95822eb63acccafe6261ca3f4435278baf9d62d1b34c71c36e3e55ab0e6eeea4
+SHA512: 80fe71faae42f8161201f898f54a3c88f0a9e2c4c78d072896f53ff3ccedc51d4ee34539bbdfa768b422828044396f6fe36e267ac283bd934ebdddc890d7239d
+Homepage: http://www.mellanox.com
+Description: MLNX_OFED dpdk-upstream-libs-user-only installer package  (User Space packages only)
+
+Package: mlnx-ofed-dpdk-upstream-libs
+Architecture: all
+Version: 4.9-7.1.0.0
+Priority: extra
+Section: utils
+Maintainer: Alaa Hleihel <alaa@mellanox.com>
+Installed-Size: 12
+Depends: python3-pyverbs (>= 50mlnx1-1.49710), libibumad3 (>= 50mlnx1-1.49710), libibumad-dev (>= 50mlnx1-1.49710), libibverbs-dev (>= 50mlnx1-1.49710), ibacm (>= 50mlnx1-1.49710), librdmacm1 (>= 50mlnx1-1.49710), ibverbs-utils (>= 50mlnx1-1.49710), librdmacm-dev (>= 50mlnx1-1.49710), libibverbs1 (>= 50mlnx1-1.49710), rdmacm-utils (>= 50mlnx1-1.49710), ibverbs-providers (>= 50mlnx1-1.49710), rdma-core (>= 50mlnx1-1.49710)
+Filename: ./mlnx-ofed-dpdk-upstream-libs_4.9-7.1.0.0_all.deb
+Size: 2680
+MD5sum: 5b99e5b1da924ff8f8e233eb5b88cd52
+SHA1: bd778d1ec1305ba5b9fcbf357b4651220d53bf1d
+SHA256: 7f6b9074dbea81a32f58ede6b90085176d3d4f1101f390041618845c61b339b9
+SHA512: a1562545cf441a1f5274991a0dbcac1719d3b35d2192a0f2577550146b3335a248fa109184678e6fff4b7cf515a2d4be713e22fa990bad8a88dc9b0bec1e67bd
+Homepage: http://www.mellanox.com
+Description: MLNX_OFED dpdk-upstream-libs installer package  (with DKMS support)
+
+Package: mlnx-ofed-kernel-only
+Architecture: all
+Version: 4.9-7.1.0.0
+Priority: extra
+Section: utils
+Maintainer: Alaa Hleihel <alaa@mellanox.com>
+Installed-Size: 12
+Depends: mlnx-ofed-kernel-utils (>= 4.9-OFED.4.9.7.1.0.1), iser-dkms (>= 4.9-OFED.4.9.7.1.0.1), isert-dkms (>= 4.9-OFED.4.9.7.1.0.1), ofed-scripts (>= 4.9-OFED.4.9.7.1.0), srp-dkms (>= 4.9-OFED.4.9.7.1.0.1), knem-dkms (>= 1.1.4.90mlnx2-OFED.23.04.0.5.2.1), mlnx-ofed-kernel-dkms (>= 4.9-OFED.4.9.7.1.0.1), rshim-dkms (>= 1.18-0.gb99e894), kernel-mft-dkms (>= 4.15.1-9), knem (>= 1.1.4.90mlnx2-OFED.23.04.0.5.2.1)
+Filename: ./mlnx-ofed-kernel-only_4.9-7.1.0.0_all.deb
+Size: 2704
+MD5sum: dad843c7f9634ba4ad32898df8703736
+SHA1: 75c209ef09109f503a7a804e41f2a1f7705520b2
+SHA256: afa2b0f09f4460e9a21fd0bf76ae8a9d447af7f15ac3f8f7e6ab57ff3063e126
+SHA512: 24ada2cac831dbbcb8e8cd74d659326c44cfd82ba45668c308afea94b83893e9e233abe8cd82d0db7de96d1f108462075653cf2642fe9fcf4cc08ccaa7c72657
+Homepage: http://www.mellanox.com
+Description: MLNX_OFED kernel-only installer package (UPSTREAM_LIBS) (with DKMS support)
+
+Package: python3-pyverbs
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: same
+Priority: optional
+Section: python
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 2861
+Provides: python3.8-pyverbs
+Depends: rdma-core (>= 21), python3 (<< 3.9), python3 (>= 3.8~), python3:any, ibverbs-providers (>= 28), libc6 (>= 2.14), libibverbs1 (>= 28), libpython3.8 (>= 3.8.2), librdmacm1 (>= 1.0.15)
+Filename: ./python3-pyverbs_50mlnx1-1.49710_amd64.deb
+Size: 663036
+MD5sum: 0c0e352e1b37845e261ae83c5ae837f3
+SHA1: 698f6ae4f9984c3fbe5f6ffc5b48391052efb8d4
+SHA256: 0f1c37f1fdcc41c6f198091161732fe83ae5376ed4cea4f92101f0c142933136
+SHA512: 608cc5571de8804bb52a7e1d06817ee93cd220b8c22b7b5363df6ff6b66cb8680976587ac1dad2b97b11050aed2f4454dcbf8328dae0f5bb9534890621a00eb3
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Python bindings for rdma-core
+ Pyverbs provides a Python API over rdma-core, the Linux userspace C API for
+ the remote direct memory access (RDMA) stack.
+ .
+ One goal is to provide easier access to RDMA: RDMA has a steep learning curve
+ as is and the C interface requires the user to initialize multiple structs
+ before having usable objects. Pyverbs attempts to remove much of this overhead
+ and provide a smoother user experience.
+
+Package: rdma-core
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: foreign
+Priority: optional
+Section: net
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 117
+Depends: lsb-base (>= 3.2-14~), udev, libc6 (>= 2.16), libnl-3-200 (>= 3.2.7), libsystemd0, libudev1 (>= 183)
+Recommends: dmidecode, ethtool, iproute2
+Breaks: infiniband-diags (<< 2.0.0)
+Replaces: infiniband-diags (<< 2.0.0)
+Filename: ./rdma-core_50mlnx1-1.49710_amd64.deb
+Size: 37320
+MD5sum: 35315364f45578b2bc019739070f1e0b
+SHA1: af0a143e8a7343b3a2f7bb1110596f5f4341bced
+SHA256: 05fe7149cc8514b9b4a3a22c63b907989632de32b62a6f0adfe3b45b4ef78f50
+SHA512: 214c3a3c31019f03b26a19fad934e28b1e6d7f0484140eb8072d8f04dd0e703a6e048862cb3c1faf50fc889fa5e16fd3c54740524d180d4d644d38e3958b53df
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: RDMA core userspace infrastructure and documentation
+ This package provides the basic boot time support for systems that use the
+ Linux kernel's remote direct memory access (RDMA) subystem which includes
+ InfiniBand, iWARP, and RDMA over Converged Ethernet (RoCE).
+ .
+ Several kernel RDMA support daemons are included:
+  - The rdma-ndd daemon which watches for RDMA device changes and/or hostname
+    changes and updates the Node Description of the RDMA devices based on
+    those changes.
+
+Package: rdmacm-utils
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: foreign
+Priority: optional
+Section: net
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 354
+Depends: libc6 (>= 2.14), libibverbs1 (>= 1.1.6), librdmacm1 (>= 23)
+Breaks: librdmacm-utils
+Replaces: librdmacm-utils
+Filename: ./rdmacm-utils_50mlnx1-1.49710_amd64.deb
+Size: 71136
+MD5sum: 12287c74e41fedd0a3c258ed9b6932cb
+SHA1: 972b76bb5d854c8ec4d426c58eb4c35d0fd4b209
+SHA256: fbe4287d7aad644029ac411d62b9c5ca2a14f19c18a43abc1fdcacf272246eac
+SHA512: bed93a829f5bf8542ff3f818a0fdd3cd40bcfe2cc8bd01f3ca9367b7f6881b5cef7af9705a1221c42e65d1a9da6cd77dfc22059c4e54a451582467c91fa61878
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Examples for the librdmacm library
+ librdmacm is a library that allows applications to set up reliable
+ connected and unreliable datagram transfers when using RDMA adapters.
+ It provides a transport-neutral interface in the sense that the same
+ code can be used for both InfiniBand and iWARP adapters.  The
+ interface is based on sockets, but adapted for queue pair (QP) based
+ semantics: communication must use a specific RDMA device, and data
+ transfers are message-based.
+ .
+ librdmacm only provides communication management (connection setup
+ and tear-down) and works in conjunction with the verbs interface
+ provided by libibverbs, which provides the interface used to actually
+ transfer data.
+ .
+ This package contains useful librdmacm1 example programs such as
+ rping and udaddy.
+
+Package: srptools
+Architecture: amd64
+Version: 50mlnx1-1.49710
+Multi-Arch: foreign
+Priority: optional
+Section: net
+Source: rdma-core
+Maintainer: Linux RDMA Mailing List <linux-rdma@vger.kernel.org>
+Installed-Size: 147
+Depends: lsb-base (>= 3.2-14~), rdma-core (>= 15), udev, libc6 (>= 2.17), libibumad3 (>= 1.3.9), libibverbs1 (>= 20)
+Filename: ./srptools_50mlnx1-1.49710_amd64.deb
+Size: 41968
+MD5sum: bf48de15aefb436fb9bc4f5333c2d4e2
+SHA1: 71d9b7b20b8eba9dd36fba6715f0fb175d3b300a
+SHA256: 6c4800814615c9ae9ad8bf57f4ff6f9a36b62f2cfcc5cea1269182095e4d4934
+SHA512: 636fc175ebfc7cb2d0dcc5aa05c527ae962afe5d4bfd9df881c392e9a7de5fbbcdb92e3a056135384252bd673ea84c536033cdecb8ae5043d0ebccb9f0a4b03f
+Homepage: https://github.com/linux-rdma/rdma-core
+Description: Tools for Infiniband attached storage (SRP)
+ In conjunction with the kernel ib_srp driver, srptools allows you to
+ discover and use Infiniband attached storage devices which use the
+ SCSI RDMA Protocol (SRP).
+
