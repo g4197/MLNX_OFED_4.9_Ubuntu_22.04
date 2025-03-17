@@ -211,7 +211,12 @@ static void slave_event(struct mlx4_dev *dev, u8 slave, struct mlx4_eqe *eqe)
 	memcpy(s_eqe, eqe, sizeof(struct mlx4_eqe) - 1);
 	s_eqe->slave_id = slave;
 	/* ensure all information is written before setting the ownersip bit */
+
+#ifdef dma_wmb
 	dma_wmb();
+#else
+	wmb();
+#endif
 	s_eqe->owner = !!(slave_eq->prod & SLAVE_EVENT_EQ_SIZE) ? 0x0 : 0x80;
 	++slave_eq->prod;
 
@@ -233,15 +238,18 @@ static void mlx4_slave_event(struct mlx4_dev *dev, int slave,
 	slave_event(dev, slave, eqe);
 }
 
-#if defined(CONFIG_SMP)
+#if defined(CONFIG_SMP) && defined(HAVE_IRQ_SET_AFFINITY_HINT)
 static void mlx4_set_eq_affinity_hint(struct mlx4_priv *priv, int vec)
 {
 	int hint_err;
 	struct mlx4_dev *dev = &priv->dev;
 	struct mlx4_eq *eq = &priv->eq_table.eq[vec];
-
+#ifdef HAVE_CPUMASK_AVAILABLE 
 	if (!cpumask_available(eq->affinity_mask) ||
 	    cpumask_empty(eq->affinity_mask))
+#else
+	if (!eq->affinity_mask || cpumask_empty(eq->affinity_mask))
+#endif
 		return;
 
 	hint_err = irq_set_affinity_hint(eq->irq, eq->affinity_mask);
@@ -514,7 +522,11 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
 		 * Make sure we read EQ entry contents after we've
 		 * checked the ownership bit.
 		 */
+#ifdef dma_rmb
 		dma_rmb();
+#else
+		rmb();
+#endif
 
 		switch (eqe->type) {
 		case MLX4_EVENT_TYPE_COMP:
@@ -555,9 +567,9 @@ static int mlx4_eq_int(struct mlx4_dev *dev, struct mlx4_eq *eq)
 			break;
 
 		case MLX4_EVENT_TYPE_SRQ_LIMIT:
-			mlx4_dbg(dev, "%s: MLX4_EVENT_TYPE_SRQ_LIMIT. srq_no=0x%x, eq 0x%x\n",
-				 __func__, be32_to_cpu(eqe->event.srq.srqn),
-				 eq->eqn);
+			// mlx4_dbg(dev, "%s: MLX4_EVENT_TYPE_SRQ_LIMIT. srq_no=0x%x, eq 0x%x\n",
+			// 	 __func__, be32_to_cpu(eqe->event.srq.srqn),
+			// 	 eq->eqn);				
 			/* fall through */
 		case MLX4_EVENT_TYPE_SRQ_CATAS_ERROR:
 			if (mlx4_is_master(dev)) {
@@ -1141,7 +1153,7 @@ static void mlx4_free_irqs(struct mlx4_dev *dev)
 	for (i = 0; i < dev->caps.num_comp_vectors + 1; ++i)
 		if (eq_table->eq[i].have_irq) {
 			free_cpumask_var(eq_table->eq[i].affinity_mask);
-#if defined(CONFIG_SMP)
+#if defined(CONFIG_SMP) && defined(HAVE_IRQ_SET_AFFINITY_HINT)
 			irq_set_affinity_hint(eq_table->eq[i].irq, NULL);
 #endif
 			free_irq(eq_table->eq[i].irq, eq_table->eq + i);
@@ -1601,7 +1613,7 @@ int mlx4_assign_eq(struct mlx4_dev *dev, u8 port, u32 consumer_uuid,
 			clear_bit(*prequested_vector, priv->msix_ctl.pool_bm);
 			*prequested_vector = -1;
 		} else {
-#if defined(CONFIG_SMP)
+#if defined(CONFIG_SMP) && defined(HAVE_IRQ_SET_AFFINITY_HINT)
 			mlx4_set_eq_affinity_hint(priv, *prequested_vector);
 #endif
 			eq_set_ci(&priv->eq_table.eq[*prequested_vector], 1);

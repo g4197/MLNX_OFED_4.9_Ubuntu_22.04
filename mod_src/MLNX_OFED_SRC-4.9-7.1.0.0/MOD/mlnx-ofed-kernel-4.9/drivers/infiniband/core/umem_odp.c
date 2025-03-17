@@ -30,6 +30,7 @@
  * SOFTWARE.
  */
 
+#if HAVE_INTERVAL_TREE_GENERIC_H
 #include <linux/types.h>
 #include <linux/sched.h>
 #include <linux/sched/mm.h>
@@ -141,10 +142,45 @@ static void ib_umem_notifier_release(struct mmu_notifier *mn,
 	if (per_mm->active)
 		rbt_ib_umem_for_each_in_range(
 			&per_mm->umem_tree, 0, ULLONG_MAX,
+#if defined(HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE) || defined(HAVE_MMU_NOTIFIER_RANGE_STRUCT)
 			ib_umem_notifier_release_trampoline, true, NULL);
+#else
+			ib_umem_notifier_release_trampoline, NULL);
+#endif
 	ib_invoke_sync_clients(mm, 0, 0);
 	up_read(&per_mm->umem_rwsem);
 }
+
+#ifdef HAVE_INVALIDATE_PAGE
+static int invalidate_page_trampoline(struct ib_umem_odp *item, u64 start,
+				      u64 end, void *cookie)
+{
+       ib_umem_notifier_start_account(item);
+       item->umem.context->invalidate_range(item, start, start + PAGE_SIZE);
+       ib_umem_notifier_end_account(item);
+       *(bool *)cookie = true;
+       return 0;
+}
+
+static void ib_umem_notifier_invalidate_page(struct mmu_notifier *mn,
+					      struct mm_struct *mm,
+					      unsigned long address)
+{
+	struct ib_ucontext_per_mm *per_mm =
+				container_of(mn, struct ib_ucontext_per_mm, mn);
+	bool call_rsync = false;
+
+	down_read(&per_mm->umem_rwsem);
+	if (per_mm->active)
+		rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, address,
+					      address + PAGE_SIZE,
+					      invalidate_page_trampoline, &call_rsync);
+	if (call_rsync)
+		ib_invoke_sync_clients(mm, address, PAGE_SIZE);
+
+	up_read(&per_mm->umem_rwsem);
+}
+#endif
 
 static int invalidate_range_start_trampoline(struct ib_umem_odp *item,
 					     u64 start, u64 end, void *cookie)
@@ -155,15 +191,39 @@ static int invalidate_range_start_trampoline(struct ib_umem_odp *item,
 	return 0;
 }
 
+#ifdef HAVE_MMU_NOTIFIER_RANGE_STRUCT
 static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
-				const struct mmu_notifier_range *range)
+       			const struct mmu_notifier_range *range)
+#else
+#ifdef HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE
+static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
+						    struct mm_struct *mm,
+						    unsigned long start,
+						    unsigned long end,
+						    bool blockable)
+#else
+static void ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
+						    struct mm_struct *mm,
+						    unsigned long start,
+						    unsigned long end)
+#endif
+#endif /*HAVE_MMU_NOTIFIER_RANGE_STRUCT*/
 {
 	struct ib_ucontext_per_mm *per_mm =
 		container_of(mn, struct ib_ucontext_per_mm, mn);
 	bool call_rsync = false;
-	int ret;
 
+#if defined(HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE) || defined(HAVE_MMU_NOTIFIER_RANGE_STRUCT)
+	int ret;
+#ifdef HAVE_MMU_NOTIFIER_RANGE_BLOCKABLE
 	if (mmu_notifier_range_blockable(range))
+#else
+#ifdef HAVE_MMU_NOTIFIER_RANGE_STRUCT
+	if (range->blockable)
+#else
+        if (blockable)
+#endif
+#endif
 		down_read(&per_mm->umem_rwsem);
 	else if (!down_read_trylock(&per_mm->umem_rwsem))
 		return -EAGAIN;
@@ -178,15 +238,55 @@ static int ib_umem_notifier_invalidate_range_start(struct mmu_notifier *mn,
 		return 0;
 	}
 
+#ifdef HAVE_MMU_NOTIFIER_RANGE_BLOCKABLE
 	ret = rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, range->start,
 					     range->end,
 					     invalidate_range_start_trampoline,
 					     mmu_notifier_range_blockable(range),
 					     &call_rsync);
-	if (call_rsync)
-		ib_invoke_sync_clients(range->mm, range->start, range->end - range->start);
+#else
+#ifdef HAVE_MMU_NOTIFIER_RANGE_STRUCT
+	ret = rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, range->start,
+					    range->end,
+					    invalidate_range_start_trampoline,
+					    range->blockable, &call_rsync);
+#else
+	ret = rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, start, end,
+					    invalidate_range_start_trampoline,
+				             blockable, &call_rsync);
+#endif
+#endif //HAVE_MMU_NOTIFIER_RANGE_BLOCKABLE
 
+#else /*defined(HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE) || defined(HAVE_MMU_NOTIFIER_RANGE_STRUCT)*/ 
+
+	//ib_ucontext_notifier_start_account(context);
+	down_read(&per_mm->umem_rwsem);
+
+	if (!per_mm->active) {
+		up_read(&per_mm->umem_rwsem);
+		/*
+		 * At this point active is permanently set and visible to this
+		 * CPU without a lock, that fact is relied on to skip the unlock
+		 * in range_end.
+		 */
+		return;
+	}
+	rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, start, end,
+			invalidate_range_start_trampoline,
+			&call_rsync);
+
+#endif
+	if (call_rsync)
+#ifdef HAVE_MMU_NOTIFIER_RANGE_STRUCT
+		ib_invoke_sync_clients(range->mm, range->start, range->end - range->start);
+#else
+		ib_invoke_sync_clients(mm, start, end - start);
+#endif
+#if defined(HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE) || defined(HAVE_MMU_NOTIFIER_RANGE_STRUCT)
 	return ret;
+#else
+	return;
+#endif
 }
 
 static int invalidate_range_end_trampoline(struct ib_umem_odp *item, u64 start,
@@ -197,7 +297,13 @@ static int invalidate_range_end_trampoline(struct ib_umem_odp *item, u64 start,
 }
 
 static void ib_umem_notifier_invalidate_range_end(struct mmu_notifier *mn,
-				const struct mmu_notifier_range *range)
+#ifdef HAVE_MMU_NOTIFIER_RANGE_STRUCT
+						const struct mmu_notifier_range *range)
+#else
+ 						  struct mm_struct *mm,
+ 						  unsigned long start,
+ 						  unsigned long end)
+#endif
 {
 	struct ib_ucontext_per_mm *per_mm =
 		container_of(mn, struct ib_ucontext_per_mm, mn);
@@ -205,9 +311,19 @@ static void ib_umem_notifier_invalidate_range_end(struct mmu_notifier *mn,
 	if (unlikely(!per_mm->active))
 		return;
 
-	rbt_ib_umem_for_each_in_range(&per_mm->umem_tree, range->start,
-				      range->end,
+	rbt_ib_umem_for_each_in_range(&per_mm->umem_tree,
+#ifdef HAVE_MMU_NOTIFIER_RANGE_STRUCT
+					range->start,
+					range->end,
+#else 
+					 start,
+					 end,
+#endif/*HAVE_MMU_NOTIFIER_RANGE_STRUCT*/
+#if defined(HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE) || defined(HAVE_MMU_NOTIFIER_RANGE_STRUCT)
 				      invalidate_range_end_trampoline, true, NULL);
+#else
+				      invalidate_range_end_trampoline, NULL);
+#endif/* defined(HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE) || defined(HAVE_MMU_NOTIFIER_RANGE_STRUCT) */
 	up_read(&per_mm->umem_rwsem);
 }
 
@@ -236,6 +352,9 @@ static const struct mmu_notifier_ops ib_umem_notifiers = {
 	.invalidate_range_end       = ib_umem_notifier_invalidate_range_end,
 #ifdef CONFIG_CXL_LIB
 	.invalidate_range	    = ib_umem_notifier_invalidate_range,
+#endif
+#ifdef HAVE_INVALIDATE_PAGE
+	.invalidate_page            = ib_umem_notifier_invalidate_page,
 #endif
 };
 
@@ -277,7 +396,11 @@ static struct ib_ucontext_per_mm *alloc_per_mm(struct ib_ucontext *ctx,
 
 	per_mm->context = ctx;
 	per_mm->mm = mm;
-	per_mm->umem_tree = RB_ROOT_CACHED;
+#ifndef HAVE_INTERVAL_TREE_TAKES_RB_ROOT
+        per_mm->umem_tree = RB_ROOT_CACHED;
+#else
+	per_mm->umem_tree = RB_ROOT;
+#endif
 	init_rwsem(&per_mm->umem_rwsem);
 	per_mm->active = true;
 
@@ -365,7 +488,9 @@ static void put_per_mm(struct ib_umem_odp *umem_odp)
 	per_mm->active = false;
 	up_write(&per_mm->umem_rwsem);
 
+#ifndef HAVE_INTERVAL_TREE_TAKES_RB_ROOT
 	WARN_ON(!RB_EMPTY_ROOT(&per_mm->umem_tree.rb_root));
+#endif
 	mmu_notifier_unregister_no_release(&per_mm->mn, per_mm->mm);
 	put_pid(per_mm->tgid);
 	mmu_notifier_call_srcu(&per_mm->rcu, free_per_mm);
@@ -446,15 +571,20 @@ int ib_umem_odp_get(struct ib_umem_odp *umem_odp, int access)
 		struct vm_area_struct *vma;
 		struct hstate *h;
 
-		down_read(&mm->mmap_sem);
+		mmap_read_lock(mm);
 		vma = find_vma(mm, ib_umem_start(umem));
 		if (!vma || !is_vm_hugetlb_page(vma)) {
-			up_read(&mm->mmap_sem);
+			mmap_read_unlock(mm);
 			return -EINVAL;
 		}
 		h = hstate_vma(vma);
 		umem->page_shift = huge_page_shift(h);
-		up_read(&mm->mmap_sem);
+		mmap_read_unlock(mm);
+#if !defined(HAVE_FOLL_LONGTERM) && !defined(HAVE_GET_USER_PAGES_LONGTERM)
+		umem->hugetlb = 1;
+	} else {
+		umem->hugetlb = 0;
+#endif
 	}
 
 	mutex_init(&umem_odp->umem_mutex);
@@ -640,7 +770,9 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
 	struct page       **local_page_list = NULL;
 	u64 page_mask, off;
 	int j, k, ret = 0, start_idx, npages = 0, page_shift;
+#ifdef HAVE_GET_USER_PAGES_GUP_FLAGS
 	unsigned int flags = 0;
+#endif
 	phys_addr_t p = 0;
 
 	if (access_mask == 0)
@@ -671,8 +803,10 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
 		goto out_put_task;
 	}
 
+#ifdef HAVE_GET_USER_PAGES_GUP_FLAGS
 	if (access_mask & ODP_WRITE_ALLOWED_BIT)
 		flags |= FOLL_WRITE;
+#endif
 
 	start_idx = (user_virt - ib_umem_start(umem)) >> page_shift;
 	k = start_idx;
@@ -682,7 +816,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
 				(bcnt + BIT(page_shift) - 1) >> page_shift,
 				PAGE_SIZE / sizeof(struct page *));
 
-		down_read(&owning_mm->mmap_sem);
+		mmap_read_lock(owning_mm);
 		/*
 		 * Note: this might result in redundent page getting. We can
 		 * avoid this by checking dma_list to be 0 before calling
@@ -690,10 +824,30 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
 		 * complex (and doesn't gain us much performance in most use
 		 * cases).
 		 */
+#if defined(HAVE_GET_USER_PAGES_REMOTE_8_PARAMS) || defined(HAVE_GET_USER_PAGES_REMOTE_7_PARAMS) || defined(HAVE_GET_USER_PAGES_REMOTE_8_PARAMS_W_LOCKED)
 		npages = get_user_pages_remote(owning_process, owning_mm,
 				user_virt, gup_num_pages,
+#ifdef HAVE_GET_USER_PAGES_GUP_FLAGS
+#ifdef HAVE_GET_USER_PAGES_REMOTE_8_PARAMS_W_LOCKED
 				flags, local_page_list, NULL, NULL);
-		up_read(&owning_mm->mmap_sem);
+#else
+				flags, local_page_list, NULL);
+#endif
+#else
+				access_mask & ODP_WRITE_ALLOWED_BIT,
+				local_page_list, NULL);
+#endif
+#else
+		npages = get_user_pages(
+				user_virt, gup_num_pages,
+#ifdef HAVE_GET_USER_PAGES_7_PARAMS
+				flags, local_page_list, NULL);
+#else
+				access_mask & ODP_WRITE_ALLOWED_BIT,
+				local_page_list, NULL);
+#endif
+#endif
+		mmap_read_unlock(owning_mm);
 
 		if (npages < 0) {
 			if (npages != -EAGAIN)
@@ -742,9 +896,14 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
 			 * to hit an error was already released by
 			 * ib_umem_odp_map_dma_single_page().
 			 */
+#ifdef HAVE_RELEASE_PAGES
 			if (npages - (j + 1) > 0)
 				release_pages(&local_page_list[j+1],
 					      npages - (j + 1));
+#else
+			for (++j; j < npages; ++j)
+				put_page(local_page_list[j]);
+#endif
 			break;
 		}
 	}
@@ -826,10 +985,16 @@ EXPORT_SYMBOL(ib_umem_odp_unmap_dma_pages);
 /* @last is not a part of the interval. See comment for function
  * node_last.
  */
+#ifndef HAVE_INTERVAL_TREE_TAKES_RB_ROOT
 int rbt_ib_umem_for_each_in_range(struct rb_root_cached *root,
+#else
+int rbt_ib_umem_for_each_in_range(struct rb_root *root,
+#endif
 				  u64 start, u64 last,
 				  umem_call_back cb,
+#if defined(HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE) || defined(HAVE_MMU_NOTIFIER_RANGE_STRUCT)
 				  bool blockable,
+#endif
 				  void *cookie)
 {
 	int ret_val = 0;
@@ -842,8 +1007,10 @@ int rbt_ib_umem_for_each_in_range(struct rb_root_cached *root,
 	for (node = rbt_ib_umem_iter_first(root, start, last - 1);
 			node; node = next) {
 		/* TODO move the blockable decision up to the callback */
+#if defined(HAVE_UMEM_NOTIFIER_PARAM_BLOCKABLE) || defined(HAVE_MMU_NOTIFIER_RANGE_STRUCT)
 		if (!blockable)
 			return -EAGAIN;
+#endif
 		next = rbt_ib_umem_iter_next(node, start, last - 1);
 		umem = container_of(node, struct ib_umem_odp, interval_tree);
 		ret_val = cb(umem, start, last, cookie) || ret_val;
@@ -852,8 +1019,13 @@ int rbt_ib_umem_for_each_in_range(struct rb_root_cached *root,
 	return ret_val;
 }
 EXPORT_SYMBOL(rbt_ib_umem_for_each_in_range);
+#endif
 
+#ifndef HAVE_INTERVAL_TREE_TAKES_RB_ROOT
 struct ib_umem_odp *rbt_ib_umem_lookup(struct rb_root_cached *root,
+#else
+struct ib_umem_odp *rbt_ib_umem_lookup(struct rb_root *root,
+#endif
 				       u64 addr, u64 length)
 {
 	struct umem_odp_node *node;

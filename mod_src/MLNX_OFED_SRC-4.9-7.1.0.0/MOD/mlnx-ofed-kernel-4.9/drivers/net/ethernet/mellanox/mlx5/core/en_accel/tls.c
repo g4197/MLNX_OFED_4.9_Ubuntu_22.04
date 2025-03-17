@@ -160,6 +160,7 @@ static void mlx5e_tls_del(struct net_device *netdev,
 				direction == TLS_OFFLOAD_CTX_DIR_TX);
 }
 
+#ifdef HAVE_TLSDEV_OPS_HAS_TLS_DEV_RESYNC_RX
 static void mlx5e_tls_resync_rx(struct net_device *netdev, struct sock *sk,
 				u32 seq, u64 rcd_sn)
 {
@@ -174,11 +175,14 @@ static void mlx5e_tls_resync_rx(struct net_device *netdev, struct sock *sk,
 	mlx5_accel_tls_resync_rx(priv->mdev, rx_ctx->handle, seq, rcd_sn);
 	atomic64_inc(&priv->tls->sw_stats.rx_tls_resync_reply);
 }
+#endif
 
 static const struct tlsdev_ops mlx5e_tls_ops = {
 	.tls_dev_add = mlx5e_tls_add,
 	.tls_dev_del = mlx5e_tls_del,
+#ifdef HAVE_TLSDEV_OPS_HAS_TLS_DEV_RESYNC_RX
 	.tls_dev_resync_rx = mlx5e_tls_resync_rx,
+#endif
 };
 
 void mlx5e_tls_build_netdev(struct mlx5e_priv *priv)
@@ -199,12 +203,12 @@ void mlx5e_tls_build_netdev(struct mlx5e_priv *priv)
 		netdev->features          |= NETIF_F_HW_TLS_TX;
 		netdev->hw_features       |= NETIF_F_HW_TLS_TX;
 	}
-
+#ifdef HAVE_NETIF_F_HW_TLS_RX
 	if (caps & MLX5_ACCEL_TLS_RX) {
 		netdev->features          |= NETIF_F_HW_TLS_RX;
 		netdev->hw_features       |= NETIF_F_HW_TLS_RX;
 	}
-
+#endif
 	if (!(caps & MLX5_ACCEL_TLS_LRO)) {
 		netdev->features          &= ~NETIF_F_LRO;
 		netdev->hw_features       &= ~NETIF_F_LRO;

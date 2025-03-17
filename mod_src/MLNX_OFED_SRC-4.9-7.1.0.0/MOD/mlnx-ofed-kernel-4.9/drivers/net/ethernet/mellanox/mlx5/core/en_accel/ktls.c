@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
 // Copyright (c) 2019 Mellanox Technologies.
 
+#ifdef HAVE_KTLS_STRUCTS
+
 #include "en.h"
 #include "en_accel/ktls.h"
 
@@ -91,3 +93,5 @@ void mlx5e_ktls_build_netdev(struct mlx5e_priv *priv)
 
 	netdev->tlsdev_ops = &mlx5e_ktls_ops;
 }
+
+#endif

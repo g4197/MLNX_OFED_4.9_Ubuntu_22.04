@@ -122,7 +122,12 @@ static int mlx5_fpga_conn_post_recv(struct mlx5_fpga_conn *conn,
 	conn->qp.rq.bufs[ix] = buf;
 
 	/* Make sure that descriptors are written before doorbell record. */
+#ifdef dma_wmb
 	dma_wmb();
+#else
+	wmb();
+#endif
+
 	*conn->qp.wq.rq.db = cpu_to_be32(conn->qp.rq.pc & 0xffff);
 out:
 	return err;
@@ -131,7 +136,12 @@ out:
 static void mlx5_fpga_conn_notify_hw(struct mlx5_fpga_conn *conn, void *wqe)
 {
 	/* ensure wqe is visible to device before updating doorbell record */
+#ifdef dma_wmb
 	dma_wmb();
+#else
+	wmb();
+#endif
+
 	*conn->qp.wq.sq.db = cpu_to_be32(conn->qp.sq.pc);
 	/* Make sure that doorbell record is visible before ringing */
 	wmb();

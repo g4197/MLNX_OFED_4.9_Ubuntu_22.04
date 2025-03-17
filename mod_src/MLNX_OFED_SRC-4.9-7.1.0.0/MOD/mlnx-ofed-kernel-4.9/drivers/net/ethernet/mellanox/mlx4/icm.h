@@ -81,7 +81,12 @@ struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
 				gfp_t gfp_mask, int coherent);
 void mlx4_free_icm(struct mlx4_dev *dev, struct mlx4_icm *icm, int coherent);
 
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj);
+#else
+int mlx4_table_get(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj,
+		   gfp_t gfp);
+#endif
 void mlx4_table_put(struct mlx4_dev *dev, struct mlx4_icm_table *table, u32 obj);
 int mlx4_table_get_range(struct mlx4_dev *dev, struct mlx4_icm_table *table,
 			 u32 start, u32 end);

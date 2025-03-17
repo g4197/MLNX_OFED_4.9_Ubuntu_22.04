@@ -44,6 +44,7 @@
 
 static void mlx5_ib_cq_comp(struct mlx5_core_cq *cq, struct mlx5_eqe *eqe)
 {
+#ifdef HAVE_PNV_PCI_AS_NOTIFY
 	struct mlx5_ib_cq *mlx5ib_cq = to_mibcq(cq);
 	struct ib_cq *ibcq = &mlx5ib_cq->ibcq;
 
@@ -51,6 +52,11 @@ static void mlx5_ib_cq_comp(struct mlx5_core_cq *cq, struct mlx5_eqe *eqe)
 
 	if (unlikely(mlx5ib_cq->tsk))
 		kick_process(mlx5ib_cq->tsk);
+#else
+	struct ib_cq *ibcq = &to_mibcq(cq)->ibcq;
+
+	ibcq->comp_handler(ibcq, ibcq->cq_context);
+#endif
 }
 
 static void mlx5_ib_cq_event(struct mlx5_core_cq *mcq, enum mlx5_event type)
@@ -988,8 +994,8 @@ struct ib_cq *mlx5_ib_create_cq(struct ib_device *ibdev,
 	struct mlx5_ib_dev *dev = to_mdev(ibdev);
 	u32 out[MLX5_ST_SZ_DW(create_cq_out)];
 	struct mlx5_ib_cq *cq;
-	int uninitialized_var(index);
-	int uninitialized_var(inlen);
+	int index = 0;
+	int inlen = 0;
 	u32 *cqb = NULL;
 	void *cqc;
 	int cqe_size;
@@ -1332,7 +1338,7 @@ int mlx5_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
 	__be64 *pas;
 	int page_shift;
 	int inlen;
-	int uninitialized_var(cqe_size);
+	int cqe_size = 0;
 	unsigned long flags;
 
 	if (!MLX5_CAP_GEN(dev->mdev, cq_resize)) {

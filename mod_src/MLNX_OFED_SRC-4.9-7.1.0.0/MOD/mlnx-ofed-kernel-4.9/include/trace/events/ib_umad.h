@@ -4,6 +4,7 @@
  * Copyright (c) 2018 Intel Corporation.  All rights reserved.
  *
  */
+#ifndef MLX_DISABLE_TRACEPOINTS
 
 #undef TRACE_SYSTEM
 #define TRACE_SYSTEM ib_umad
@@ -124,3 +125,4 @@ DEFINE_EVENT(ib_umad_template, ib_umad_read_send,
 #endif /* _TRACE_IB_UMAD_H */
 
 #include <trace/define_trace.h>
+#endif

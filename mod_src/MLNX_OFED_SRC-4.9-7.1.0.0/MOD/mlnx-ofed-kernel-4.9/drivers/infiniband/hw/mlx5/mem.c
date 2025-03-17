@@ -241,8 +241,11 @@ static int test_wc_poll_cq(struct mlx5_ib_dev *dev, struct ib_cq *cq)
 
 static int test_wc_do_send(struct mlx5_ib_dev *dev, struct ib_qp *qp)
 {
-	struct ib_send_wr wr = { .opcode = MLX5_IB_WR_NOP, .wr_id = WR_ID_BF };
+	struct ib_send_wr wr = {};
 	int err, i;
+
+	wr.opcode = MLX5_IB_WR_NOP;
+	wr.wr_id = WR_ID_BF;
 
 	for (i = 0; i < TEST_WC_NUM_WQES; i++) {
 		if (i == TEST_WC_NUM_WQES - 1) {

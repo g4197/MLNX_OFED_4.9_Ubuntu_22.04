@@ -100,11 +100,19 @@ int __mlx4_srq_alloc_icm(struct mlx4_dev *dev, int *srqn)
 	if (*srqn == -1)
 		return -ENOMEM;
 
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 	err = mlx4_table_get(dev, &srq_table->table, *srqn);
+#else
+	err = mlx4_table_get(dev, &srq_table->table, *srqn, GFP_KERNEL);
+#endif
 	if (err)
 		goto err_out;
 
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 	err = mlx4_table_get(dev, &srq_table->cmpt_table, *srqn);
+#else
+	err = mlx4_table_get(dev, &srq_table->cmpt_table, *srqn, GFP_KERNEL);
+#endif
 	if (err)
 		goto err_put;
 	return 0;

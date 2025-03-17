@@ -406,6 +406,7 @@ int mlx5_ib_set_vma_data(struct vm_area_struct *vma,
 
 static inline pgprot_t mlx5_ib_pgprot_writecombine(pgprot_t prot)
 {
+#if defined(MIDR_CPU_MODEL_MASK)
 #if defined(CONFIG_ARM64)
 	/*
 	 * Fix up arm64 braindamage of using NORMAL_NC for write
@@ -413,14 +414,25 @@ static inline pgprot_t mlx5_ib_pgprot_writecombine(pgprot_t prot)
 	 * purpose. Needed on ThunderX2.
 	 */
 	switch (read_cpuid_id() & MIDR_CPU_MODEL_MASK) {
+#if defined(ARM_CPU_IMP_BRCM) && defined(BRCM_CPU_PART_VULCAN)
 	case MIDR_CPU_MODEL(ARM_CPU_IMP_BRCM, BRCM_CPU_PART_VULCAN):
+#endif
 	case MIDR_CPU_MODEL(0x43, 0x0af):  /* Cavium ThunderX2 */
 		prot = __pgprot_modify(prot, PTE_ATTRINDX_MASK,
 				       PTE_ATTRINDX(MT_DEVICE_GRE) |
 				       PTE_PXN | PTE_UXN);
 	}
 #endif
+#endif
 	return prot;
 }
+
+#ifdef HAVE_MM_STRUCT_FREE_AREA_CACHE
+unsigned long mlx5_ib_exp_get_unmapped_area(struct file *file,
+					    unsigned long addr,
+					    unsigned long len,
+					    unsigned long pgoff,
+					    unsigned long flags);
+#endif
 
 #endif

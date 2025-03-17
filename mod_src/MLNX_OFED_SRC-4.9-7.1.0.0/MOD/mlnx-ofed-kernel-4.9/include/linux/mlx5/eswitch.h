@@ -93,8 +93,8 @@ u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw);
 static inline u8 mlx5_eswitch_mode(struct mlx5_eswitch *esw){ return MLX5_ESWITCH_NONE; }
 static inline u16 mlx5_eswitch_get_encap_mode(struct mlx5_eswitch *esw) { return 0; }
 static inline u32 mlx5_eswitch_vport_match_metadata_enabled(struct mlx5_eswitch *esw) { return 0; }
-static bool mlx5_eswitch_is_manager_vport(const struct mlx5_eswitch *esw,
-					  u16 vport_num)
+static inline bool mlx5_eswitch_is_manager_vport(const struct mlx5_eswitch *esw,
+					         u16 vport_num)
 {
 	return false;
 }

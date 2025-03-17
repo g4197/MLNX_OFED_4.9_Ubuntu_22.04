@@ -70,7 +70,9 @@ enum {
 	MLX5_EQ_POLLING_BUDGET	= 128,
 };
 
+#ifdef HAVE_STATIC_ASSERT
 static_assert(MLX5_EQ_POLLING_BUDGET <= MLX5_NUM_SPARE_EQE);
+#endif
 
 struct mlx5_eq_table {
 	struct list_head        comp_eqs_list;
@@ -149,7 +151,11 @@ static int mlx5_eq_comp_int(struct notifier_block *nb,
 		/* Make sure we read EQ entry contents after we've
 		 * checked the ownership bit.
 		 */
+#ifdef dma_rmb
 		dma_rmb();
+#else
+		rmb();
+#endif
 		/* Assume (eqe->type) is always MLX5_EVENT_TYPE_COMP */
 		cqn = be32_to_cpu(eqe->data.comp.cqn) & 0xffffff;
 
@@ -240,7 +246,11 @@ static int mlx5_eq_async_int(struct notifier_block *nb,
 		 * Make sure we read EQ entry contents after we've
 		 * checked the ownership bit.
 		 */
+#ifdef dma_rmb
 		dma_rmb();
+#else
+		rmb();
+#endif
 
 		if (likely(eqe->type < MLX5_EVENT_TYPE_MAX))
 			atomic_notifier_call_chain(&eqt->nh[eqe->type], eqe->type, eqe);
@@ -339,7 +349,11 @@ create_map_eq(struct mlx5_core_dev *dev, struct mlx5_eq *eq,
 
 	eq->vecidx = vecidx;
 	eq->eqn = MLX5_GET(create_eq_out, out, eq_number);
-	eq->irqn = pci_irq_vector(dev->pdev, vecidx);
+#ifdef HAVE_PCI_IRQ_API
+       eq->irqn = pci_irq_vector(dev->pdev, vecidx);
+#else
+	eq->irqn = mlx5_get_msix_vec(dev, vecidx);
+#endif
 	eq->dev = dev;
 	eq->doorbell = priv->uar->map + MLX5_EQ_DOORBEL_OFFSET;
 
@@ -849,7 +863,11 @@ struct mlx5_eqe *mlx5_eq_get_eqe(struct mlx5_eq *eq, u32 cc)
 	 * checked the ownership bit.
 	 */
 	if (eqe)
+#ifdef dma_rmb
 		dma_rmb();
+#else
+		rmb();
+#endif
 
 	return eqe;
 }
@@ -998,6 +1016,13 @@ struct mlx5_eq_comp *mlx5_eqn2comp_eq(struct mlx5_core_dev *dev, int eqn)
 
 	return ERR_PTR(-ENOENT);
 }
+
+#ifndef HAVE_PCI_IRQ_API
+u32 mlx5_get_msix_vec(struct mlx5_core_dev *dev, int vecidx)
+{
+	return dev->priv.msix_arr[vecidx].vector;
+}
+#endif
 
 /* This function should only be called after mlx5_cmd_force_teardown_hca */
 void mlx5_core_eq_free_irqs(struct mlx5_core_dev *dev)

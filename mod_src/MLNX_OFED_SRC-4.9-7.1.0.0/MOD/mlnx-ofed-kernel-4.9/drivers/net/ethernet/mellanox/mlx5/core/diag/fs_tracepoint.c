@@ -30,6 +30,8 @@
  * SOFTWARE.
  */
 
+#ifndef MLX_DISABLE_TRACEPOINTS
+
 #define CREATE_TRACE_POINTS
 
 #include "fs_tracepoint.h"
@@ -267,3 +269,4 @@ EXPORT_TRACEPOINT_SYMBOL(mlx5_fs_del_fte);
 EXPORT_TRACEPOINT_SYMBOL(mlx5_fs_add_rule);
 EXPORT_TRACEPOINT_SYMBOL(mlx5_fs_del_rule);
 
+#endif /* MLX_DISABLE_TRACEPOINTS */

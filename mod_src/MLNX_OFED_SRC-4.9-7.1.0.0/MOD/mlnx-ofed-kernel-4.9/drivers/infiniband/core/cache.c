@@ -1346,6 +1346,7 @@ struct net_device *rdma_read_gid_attr_ndev_rcu(const struct ib_gid_attr *attr)
 }
 EXPORT_SYMBOL(rdma_read_gid_attr_ndev_rcu);
 
+#ifdef HAVE_NETDEV_WALK_ALL_LOWER_DEV_RCU
 static int get_lower_dev_vlan(struct net_device *lower_dev, void *data)
 {
 	u16 *vlan_id = data;
@@ -1358,6 +1359,7 @@ static int get_lower_dev_vlan(struct net_device *lower_dev, void *data)
 	 */
 	return 1;
 }
+#endif
 
 /**
  * rdma_read_gid_l2_fields - Read the vlan ID and source MAC address
@@ -1389,12 +1391,14 @@ int rdma_read_gid_l2_fields(const struct ib_gid_attr *attr,
 		if (is_vlan_dev(ndev)) {
 			*vlan_id = vlan_dev_vlan_id(ndev);
 		} else {
+#ifdef HAVE_NETDEV_WALK_ALL_LOWER_DEV_RCU
 			/* If the netdev is upper device and if it's lower
 			 * device is vlan device, consider vlan id of the
 			 * the lower vlan device for this gid entry.
 			 */
 			netdev_walk_all_lower_dev_rcu(attr->ndev,
 					get_lower_dev_vlan, vlan_id);
+#endif
 		}
 	}
 	rcu_read_unlock();

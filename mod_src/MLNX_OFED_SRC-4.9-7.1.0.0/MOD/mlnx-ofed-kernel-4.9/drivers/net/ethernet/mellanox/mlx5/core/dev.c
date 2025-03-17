@@ -55,10 +55,10 @@ void mlx5_add_device(struct mlx5_interface *intf, struct mlx5_priv *priv)
 {
 	struct mlx5_device_context *dev_ctx;
 	struct mlx5_core_dev *dev = container_of(priv, struct mlx5_core_dev, priv);
-
+#ifdef HAVE_LAG_TX_TYPE
 	if (!mlx5_lag_intf_add(intf, priv))
 		return;
-
+#endif
 	dev_ctx = kzalloc(sizeof(*dev_ctx), GFP_KERNEL);
 	if (!dev_ctx)
 		return;

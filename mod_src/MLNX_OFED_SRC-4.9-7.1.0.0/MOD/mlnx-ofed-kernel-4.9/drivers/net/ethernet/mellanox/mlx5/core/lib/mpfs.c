@@ -136,6 +136,7 @@ int mlx5_mpfs_add_mac(struct mlx5_core_dev *dev, u8 *mac)
 	struct l2table_node *l2addr;
 	u32 index;
 	int err;
+	COMPAT_HL_NODE
 
 	if (!MLX5_ESWITCH_MANAGER(dev))
 		return 0;
@@ -178,6 +179,7 @@ int mlx5_mpfs_del_mac(struct mlx5_core_dev *dev, u8 *mac)
 	struct l2table_node *l2addr;
 	int err = 0;
 	u32 index;
+	COMPAT_HL_NODE
 
 	if (!MLX5_ESWITCH_MANAGER(dev))
 		return 0;

@@ -192,5 +192,10 @@ static inline void scsi_dh_release_device(struct scsi_device *sdev) { }
  */
 
 #define SCSI_DEVICE_BLOCK_MAX_TIMEOUT	600	/* units in seconds */
+#ifndef HAVE_SCSI_DEVICE_SCSI_INTERNAL_DEVICE_BLOCK
+extern int scsi_internal_device_block(struct scsi_device *sdev);
+extern int scsi_internal_device_unblock(struct scsi_device *sdev,
+					enum scsi_device_state new_state);
+#endif
 
 #endif /* _SCSI_PRIV_H */

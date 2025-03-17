@@ -420,7 +420,11 @@ static ssize_t port_attr_store(struct kobject *kobj,
 	return port_attr->store(p, port_attr, buf, size);
 }
 
+#ifdef CONFIG_COMPAT_IS_CONST_KOBJECT_SYSFS_OPS
 static const struct sysfs_ops port_sysfs_ops = {
+#else
+static struct sysfs_ops port_sysfs_ops = {
+#endif
 	.show = port_attr_show,
 	.store = port_attr_store,
 };

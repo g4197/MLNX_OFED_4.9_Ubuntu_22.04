@@ -339,6 +339,7 @@ void rdma_restrack_del(struct rdma_restrack_entry *res)
 	rdma_restrack_put(res);
 	wait_for_completion(&res->comp);
 
+
 out:
 	if (res->task) {
 		put_task_struct(res->task);

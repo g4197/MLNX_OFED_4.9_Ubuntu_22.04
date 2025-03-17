@@ -156,23 +156,29 @@ static int mlx5_crdump_open(struct inode *inode, struct file *file)
 {
 	struct seq_file *seq;
 	int ret;
-
+#ifndef HAVE_PDE_DATA
+	struct proc_dir_entry *pde;
+#endif
 	ret = seq_open(file, &mlx5_crdump_seq_ops);
 	if (ret)
 		return ret;
 
 	seq = file->private_data;
+#ifdef HAVE_PDE_DATA
 	seq->private = PDE_DATA(inode);
-
+#else
+	pde = PDE(inode);
+	seq->private = pde->data;
+#endif
 	return 0;
 }
 
-static const struct file_operations mlx5_crdump_fops = {
-	.owner   = THIS_MODULE,
-	.open    = mlx5_crdump_open,
-	.read    = seq_read,
-	.llseek  = seq_lseek,
-	.release = seq_release
+static const struct proc_ops mlx5_crdump_fops = {
+	// .owner   = THIS_MODULE,
+	.proc_open    = mlx5_crdump_open,
+	.proc_read    = seq_read,
+	.proc_lseek  = seq_lseek,
+	.proc_release = seq_release
 };
 
 int mlx5_cr_protected_capture(struct mlx5_core_dev *dev)

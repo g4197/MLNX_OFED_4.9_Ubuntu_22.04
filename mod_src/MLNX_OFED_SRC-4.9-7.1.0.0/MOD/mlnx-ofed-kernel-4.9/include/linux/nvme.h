@@ -4,6 +4,11 @@
  * Copyright (c) 2011-2014, Intel Corporation.
  */
 
+/* build vs. Non-MLNX_OFED .h */
+#if 0
+#include_next <linux/nvme.h>
+#else
+
 #ifndef _LINUX_NVME_H
 #define _LINUX_NVME_H
 
@@ -1323,3 +1328,4 @@ struct nvme_completion {
 #define NVME_TERTIARY(ver)	((ver) & 0xff)
 
 #endif /* _LINUX_NVME_H */
+#endif /* build vs. Non-MLNX_OFED .h */

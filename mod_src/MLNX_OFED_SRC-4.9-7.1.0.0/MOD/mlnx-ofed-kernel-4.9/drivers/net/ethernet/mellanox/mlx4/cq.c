@@ -223,11 +223,19 @@ int __mlx4_cq_alloc_icm(struct mlx4_dev *dev, int *cqn)
 	if (*cqn == -1)
 		return -ENOMEM;
 
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 	err = mlx4_table_get(dev, &cq_table->table, *cqn);
+#else
+	err = mlx4_table_get(dev, &cq_table->table, *cqn, GFP_KERNEL);
+#endif
 	if (err)
 		goto err_out;
 
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 	err = mlx4_table_get(dev, &cq_table->cmpt_table, *cqn);
+#else
+	err = mlx4_table_get(dev, &cq_table->cmpt_table, *cqn, GFP_KERNEL);
+#endif
 	if (err)
 		goto err_put;
 	return 0;

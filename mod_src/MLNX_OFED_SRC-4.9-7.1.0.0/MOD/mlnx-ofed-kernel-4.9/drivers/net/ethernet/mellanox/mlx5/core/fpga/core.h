@@ -78,7 +78,9 @@ struct mlx5_fpga_device {
 	} conn_res;
 
 	struct mlx5_fpga_ipsec *ipsec;
+#ifdef HAVE_UAPI_LINUX_TLS_H
 	struct mlx5_fpga_tls *tls;
+#endif
 
 	struct list_head list;
 	struct list_head client_data_list;

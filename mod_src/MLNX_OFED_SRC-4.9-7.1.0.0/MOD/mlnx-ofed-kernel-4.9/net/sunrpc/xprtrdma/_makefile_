@@ -92,31 +92,10 @@ default:
 		CONFIG_SUNRPC_XPRT_RDMA_CLIENT=m \
 		CONFIG_SUNRPC_XPRT_RDMA_SERVER=m \
 		CONFIG_SUNRPC_XPRT_RDMA_DUMMY= \
+		CONFIG_GPU_DIRECT_STORAGE=$(CONFIG_GPU_DIRECT_STORAGE) \
 		CONFIG_DTRACE= \
 		CONFIG_CTF= \
-		LINUXINCLUDE=' \
-		$(EXTRA_CFLAGS) \
-		-include $(autoconf_h) \
-		$(KCONFIG_H) \
-		-include $(OFA)/include/linux/compat-2.6.h \
-		-I$(PWD) \
-		-I$(OFA)/include \
-		-I$(OFA)/include/uapi \
-		$(BACKPORT_INCLUDES) \
-		$$(if $$(CONFIG_XEN),-D__XEN_INTERFACE_VERSION__=$$(CONFIG_XEN_INTERFACE_VERSION)) \
-		$$(if $$(CONFIG_XEN),-I$$(srctree)/arch/x86/include/mach-xen) \
-		-I$$(srctree)/arch/$$(SRCARCH)/include \
-		-Iarch/$$(SRCARCH)/include/generated \
-		-Iinclude \
-		-I$$(srctree)/arch/$$(SRCARCH)/include/uapi \
-		-Iarch/$$(SRCARCH)/include/generated/uapi \
-		-I$$(srctree)/include \
-		-I$$(srctree)/include/uapi \
-		-Iinclude/generated/uapi \
-		$$(if $$(KBUILD_SRC),-Iinclude2 -I$$(srctree)/include) \
-		-I$$(srctree)/arch/$$(SRCARCH)/include \
-		-Iarch/$$(SRCARCH)/include/generated \
-		' \
+		LINUXINCLUDE='$(EXTRA_CFLAGS) -include $(autoconf_h) $(KCONFIG_H) -include $(OFA)/include/linux/compat-2.6.h -I$(OFA)/include -I$(OFA)/include/uapi $(BACKPORT_INCLUDES) $$(if $$(CONFIG_XEN),-D__XEN_INTERFACE_VERSION__=$$(CONFIG_XEN_INTERFACE_VERSION)) $$(if $$(CONFIG_XEN),-I$$(srctree)/arch/x86/include/mach-xen) -I$$(srctree)/arch/$$(SRCARCH)/include -Iarch/$$(SRCARCH)/include/generated -Iinclude -I$$(srctree)/arch/$$(SRCARCH)/include/uapi -Iarch/$$(SRCARCH)/include/generated/uapi -I$$(srctree)/include -I$$(srctree)/include/uapi -Iinclude/generated/uapi $$(if $$(KBUILD_SRC),-Iinclude2 -I$$(srctree)/include) -I$$(srctree)/arch/$$(SRCARCH)/include -Iarch/$$(SRCARCH)/include/generated' \
 		KBUILD_EXTRA_SYMBOLS="$(OFA_SYMBOLS)" \
 		modulesymfile=$(SRC_DIR)/Module.symvers \
 		modules
@@ -148,6 +127,7 @@ binrpm: rpmcheck $(rpmspec)
 dist:
 	mkdir -p $(rpmroot)/$(PACKAGE)/
 	cp {$(rpmspec),makefile,Makefile,dkms.conf,Module.supported} $(rpmroot)/$(PACKAGE)/
+	cp common.postinst $(rpmroot)/$(PACKAGE)/
 	cp *.c $(rpmroot)/$(PACKAGE)/
 	cp *.h $(rpmroot)/$(PACKAGE)/
 	cp -r debian $(rpmroot)/$(PACKAGE)/

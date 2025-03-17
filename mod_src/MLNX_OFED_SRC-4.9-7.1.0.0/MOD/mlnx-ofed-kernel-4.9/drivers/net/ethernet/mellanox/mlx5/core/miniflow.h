@@ -75,6 +75,7 @@ int mlx5_ct_flow_offload_add(const struct net *net,
 			     const struct nf_conntrack_tuple *tuple,
 			     struct mlx5e_tc_flow *tc_flow);
 
+#ifndef CONFIG_COMPAT_NFT_GEN_FLOW_OFFLOAD
 int mlx5_ct_flow_offload_remove(const struct net *net,
 				const struct nf_conntrack_zone *zone,
 				const struct nf_conntrack_tuple *tuple);
@@ -84,6 +85,7 @@ int mlx5_ct_flow_offloaded_count(void);
 int ct_flow_offload_add(void *arg, struct list_head *head);
 void ct_flow_offload_get_stats(struct list_head *head, u64 *lastuse);
 int ct_flow_offload_destroy(struct list_head *head);
+#endif
 
 #else /* HAVE_MINIFLOW */
 

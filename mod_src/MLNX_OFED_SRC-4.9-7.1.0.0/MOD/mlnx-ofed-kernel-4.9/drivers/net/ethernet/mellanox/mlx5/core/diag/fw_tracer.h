@@ -189,8 +189,10 @@ struct mlx5_fw_tracer *mlx5_fw_tracer_create(struct mlx5_core_dev *dev);
 int mlx5_fw_tracer_init(struct mlx5_fw_tracer *tracer);
 void mlx5_fw_tracer_cleanup(struct mlx5_fw_tracer *tracer);
 void mlx5_fw_tracer_destroy(struct mlx5_fw_tracer *tracer);
+#ifdef HAVE_DEVLINK_HEALTH_REPORT_SUPPORT
 int mlx5_fw_tracer_trigger_core_dump_general(struct mlx5_core_dev *dev);
 int mlx5_fw_tracer_get_saved_traces_objects(struct mlx5_fw_tracer *tracer,
 					    struct devlink_fmsg *fmsg);
+#endif /* HAVE_DEVLINK_HEALTH_REPORT_SUPPORT */
 
 #endif

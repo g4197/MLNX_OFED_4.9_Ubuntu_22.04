@@ -62,6 +62,11 @@ struct mlx4_en_vport_stats {
 };
 
 struct mlx4_en_port_stats {
+#ifdef CONFIG_COMPAT_LRO_ENABLED
+	unsigned long lro_aggregated;
+	unsigned long lro_flushed;
+	unsigned long lro_no_desc;
+#endif
 	unsigned long tso_packets;
 	unsigned long xmit_more;
 	unsigned long queue_stopped;
@@ -73,7 +78,11 @@ struct mlx4_en_port_stats {
 	unsigned long rx_chksum_none;
 	unsigned long rx_chksum_complete;
 	unsigned long tx_chksum_offload;
+#ifdef CONFIG_COMPAT_LRO_ENABLED
+#define NUM_PORT_STATS		14
+#else
 #define NUM_PORT_STATS		11
+#endif
 };
 
 struct mlx4_en_perf_stats {

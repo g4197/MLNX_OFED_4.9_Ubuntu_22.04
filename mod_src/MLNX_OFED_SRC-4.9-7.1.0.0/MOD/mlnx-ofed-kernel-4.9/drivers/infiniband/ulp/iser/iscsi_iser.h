@@ -68,9 +68,31 @@
 #include <rdma/ib_fmr_pool.h>
 #include <rdma/rdma_cm.h>
 
+#if defined(CONFIG_COMPAT_RHEL_7_3) || defined(CONFIG_COMPAT_RHEL_7_2)
+#undef HAVE_BLK_QUEUE_VIRT_BOUNDARY
+#endif
+
 #define DRV_NAME	"iser"
 #define PFX		DRV_NAME ": "
 #define DRV_VER		"1.6"
+
+#ifndef HAVE_SCSI_TRANSFER_LENGTH
+static inline unsigned scsi_transfer_length(struct scsi_cmnd *scmd)
+{
+	unsigned int xfer_len = scsi_bufflen(scmd);
+	unsigned int prot_op = scsi_get_prot_op(scmd);
+	unsigned int sector_size = scmd->device->sector_size;
+
+	switch (prot_op) {
+	case SCSI_PROT_NORMAL:
+	case SCSI_PROT_WRITE_STRIP:
+	case SCSI_PROT_READ_INSERT:
+		return xfer_len;
+	}
+
+	return xfer_len + (xfer_len >> ilog2(sector_size)) * 8;
+}
+#endif
 
 #define iser_dbg(fmt, arg...)				 \
 	do {						 \
@@ -207,6 +229,10 @@ struct iser_data_buf {
 	int                size;
 	unsigned long      data_len;
 	int                dma_nents;
+#ifndef HAVE_BLK_QUEUE_VIRT_BOUNDARY
+	struct scatterlist *orig_sg;
+	unsigned int       orig_size;
+#endif
 };
 
 /* fwd declarations */

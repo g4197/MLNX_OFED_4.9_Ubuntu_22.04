@@ -96,8 +96,13 @@ void ib_cancel_rmpp_recvs(struct ib_mad_agent_private *agent)
 		if (rmpp_recv->state != RMPP_STATE_COMPLETE)
 			ib_free_recv_mad(rmpp_recv->rmpp_wc);
 		rmpp_recv->state = RMPP_STATE_CANCELING;
+#ifdef HAVE___CANCEL_DELAYED_WORK
+		__cancel_delayed_work(&rmpp_recv->timeout_work);
+		__cancel_delayed_work(&rmpp_recv->cleanup_work);
+#else
 		cancel_delayed_work(&rmpp_recv->timeout_work);
 		cancel_delayed_work(&rmpp_recv->cleanup_work);
+#endif
 	}
 	spin_unlock_irqrestore(&agent->lock, flags);
 

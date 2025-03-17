@@ -549,11 +549,16 @@ static int ib_uverbs_cmd_verbs(struct ib_uverbs_file *ufile,
 
 	if (unlikely(hdr->driver_id != uapi->driver_id))
 		return -EINVAL;
-
+#ifdef HAVE_RADIX_TREE_ITER_LOOKUP
 	slot = radix_tree_iter_lookup(
 		&uapi->radix, &attrs_iter,
 		uapi_key_obj(hdr->object_id) |
 			uapi_key_ioctl_method(hdr->method_id));
+#else
+	radix_tree_iter_init(&attrs_iter,  uapi_key_obj(hdr->object_id) |
+					uapi_key_ioctl_method(hdr->method_id));
+	slot = radix_tree_next_chunk(&uapi->radix, &attrs_iter, RADIX_TREE_ITER_CONTIG);
+#endif
 	if (unlikely(!slot))
 		return -EPROTONOSUPPORT;
 	method_elm = rcu_dereference_protected(*slot, true);

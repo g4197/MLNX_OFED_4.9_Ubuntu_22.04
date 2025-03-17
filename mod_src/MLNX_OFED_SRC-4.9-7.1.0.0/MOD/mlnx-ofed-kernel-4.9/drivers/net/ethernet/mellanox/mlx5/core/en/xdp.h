@@ -32,6 +32,7 @@
 #ifndef __MLX5_EN_XDP_H__
 #define __MLX5_EN_XDP_H__
 
+#ifdef HAVE_XDP_BUFF
 #include "en.h"
 #include "en/txrx.h"
 
@@ -47,8 +48,15 @@ bool mlx5e_poll_xdpsq_cq(struct mlx5e_cq *cq, struct mlx5e_rq *rq);
 void mlx5e_free_xdpsq_descs(struct mlx5e_xdpsq *sq, struct mlx5e_rq *rq);
 void mlx5e_set_xmit_fp(struct mlx5e_xdpsq *sq, bool is_mpw);
 void mlx5e_xdp_rx_poll_complete(struct mlx5e_rq *rq);
+#ifdef HAVE_NDO_XDP_XMIT
+#ifndef HAVE_NDO_XDP_FLUSH
 int mlx5e_xdp_xmit(struct net_device *dev, int n, struct xdp_frame **frames,
 		   u32 flags);
+#else
+int mlx5e_xdp_xmit(struct net_device *dev, struct xdp_buff *xdp);
+void mlx5e_xdp_flush(struct net_device *dev);
+#endif
+#endif
 
 static inline void mlx5e_xdp_tx_enable(struct mlx5e_priv *priv)
 {
@@ -74,7 +82,6 @@ static inline void mlx5e_xmit_xdp_doorbell(struct mlx5e_xdpsq *sq)
 		sq->doorbell_cseg = NULL;
 	}
 }
-
 /* Enable inline WQEs to shift some load from a congested HCA (HW) to
  * a less congested cpu (SW).
  */
@@ -166,4 +173,5 @@ mlx5e_xdpi_fifo_pop(struct mlx5e_xdp_info_fifo *fifo)
 {
 	return fifo->xi[(*fifo->cc)++ & fifo->mask];
 }
+#endif
 #endif

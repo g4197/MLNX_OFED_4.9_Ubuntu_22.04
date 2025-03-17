@@ -45,9 +45,25 @@ void mlx5_init_reserved_gids(struct mlx5_core_dev *dev)
 	dev->roce.reserved_gids.count = 0;
 }
 
+#if !defined(HAVE_IDA_IS_EMPTY) && !defined(HAVE_IDR_IS_EMPTY)
+static int idr_has_entry(int id, void *p, void *data)
+{
+	return 1;
+}
+
+bool idr_is_empty(struct idr *idp)
+{
+	return !idr_for_each(idp, idr_has_entry, NULL);
+}
+#endif
+
 void mlx5_cleanup_reserved_gids(struct mlx5_core_dev *dev)
 {
+#ifdef HAVE_IDA_IS_EMPTY
 	WARN_ON(!ida_is_empty(&dev->roce.reserved_gids.ida));
+#else
+	WARN_ON(!idr_is_empty(&dev->roce.reserved_gids.ida.idr));
+#endif
 	dev->roce.reserved_gids.start = 0;
 	dev->roce.reserved_gids.count = 0;
 	ida_destroy(&dev->roce.reserved_gids.ida);

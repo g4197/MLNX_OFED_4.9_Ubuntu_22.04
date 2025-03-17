@@ -183,7 +183,6 @@ struct ib_uverbs_file {
 	struct mutex umap_lock;
 	struct list_head umaps;
 	struct page *disassociate_page;
-
 	struct xarray		idr;
 };
 

@@ -40,6 +40,7 @@
 #define DIAG_GET_NEXT_BLK(dump_hdr) \
 	((struct mlx5_diag_blk *)(dump_hdr->dump + dump_hdr->total_length))
 
+#ifdef HAVE_GET_SET_DUMP
 static int mlx5e_diag_fill_device_name(struct mlx5e_priv *priv, void *buff)
 {
 	struct mlx5_core_dev *mdev = priv->mdev;
@@ -301,3 +302,4 @@ int mlx5e_get_dump_data(struct net_device *netdev, struct ethtool_dump *dump,
 
 	return 0;
 }
+#endif

@@ -17,13 +17,18 @@
 #include "xprt_rdma.h"
 
 #define CREATE_TRACE_POINTS
+#ifdef HAVE_TRACE_RPCRDMA_H
 #include <trace/events/rpcrdma.h>
+#endif
 
 MODULE_AUTHOR("Open Grid Computing and Network Appliance, Inc.");
 MODULE_DESCRIPTION("RPC/RDMA Transport");
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_ALIAS("svcrdma");
 MODULE_ALIAS("xprtrdma");
+#ifdef HAVE_XPRT_CLASS_NETID
+MODULE_ALIAS("rpcrdma6");
+#endif
 
 static void __exit rpc_rdma_cleanup(void)
 {

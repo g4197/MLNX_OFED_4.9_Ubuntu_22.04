@@ -150,6 +150,7 @@ struct uverbs_attr_spec {
  * ie the WRITE path is treated as a special method type in the ioctl
  * framework.
  */
+
 enum uapi_radix_data {
 	UVERBS_API_NS_FLAG = 1U << UVERBS_ID_NS_SHIFT,
 
@@ -899,6 +900,11 @@ int uverbs_get_flags32(u32 *to, const struct uverbs_attr_bundle *attrs_bundle,
 		       size_t idx, u64 allowed_bits);
 int uverbs_copy_to(const struct uverbs_attr_bundle *attrs_bundle, size_t idx,
 		   const void *from, size_t size);
+
+#ifndef __malloc
+#define __malloc
+#endif
+
 __malloc void *_uverbs_alloc(struct uverbs_attr_bundle *bundle, size_t size,
 			     gfp_t flags);
 

@@ -86,10 +86,12 @@ struct mlx5_ipsec_obj_attrs {
 void mlx5_get_pme_stats(struct mlx5_core_dev *dev, struct mlx5_pme_stats *stats);
 int mlx5_notifier_call_chain(struct mlx5_events *events, unsigned int event, void *data);
 
+#ifdef HAVE_DEVLINK_NET
 static inline struct net *mlx5_core_net(struct mlx5_core_dev *dev)
 {
 	return devlink_net(priv_to_devlink(dev));
 }
+#endif
 
 /* Crypto */
 int mlx5_create_encryption_key(struct mlx5_core_dev *mdev,

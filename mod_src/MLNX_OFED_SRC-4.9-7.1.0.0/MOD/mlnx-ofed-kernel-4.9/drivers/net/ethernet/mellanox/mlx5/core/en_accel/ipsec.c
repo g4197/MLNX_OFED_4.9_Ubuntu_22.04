@@ -481,6 +481,7 @@ struct mlx5e_ipsec_modify_state_work {
 	struct mlx5e_ipsec_sa_entry	*sa_entry;
 };
 
+#ifdef HAVE_XDO_DEV_STATE_ADVANCE_ESN
 static void _update_xfrm_state(struct work_struct *work)
 {
 	int ret;
@@ -520,13 +521,16 @@ static void mlx5e_xfrm_advance_esn_state(struct xfrm_state *x)
 	INIT_WORK(&modify_work->work, _update_xfrm_state);
 	WARN_ON(!queue_work(sa_entry->ipsec->wq, &modify_work->work));
 }
+#endif
 
 static const struct xfrmdev_ops mlx5e_ipsec_xfrmdev_ops = {
 	.xdo_dev_state_add	= mlx5e_xfrm_add_state,
 	.xdo_dev_state_delete	= mlx5e_xfrm_del_state,
 	.xdo_dev_state_free	= mlx5e_xfrm_free_state,
 	.xdo_dev_offload_ok	= mlx5e_ipsec_offload_ok,
+#ifdef HAVE_XDO_DEV_STATE_ADVANCE_ESN
 	.xdo_dev_state_advance_esn = mlx5e_xfrm_advance_esn_state,
+#endif
 };
 
 void mlx5e_ipsec_build_netdev(struct mlx5e_priv *priv)

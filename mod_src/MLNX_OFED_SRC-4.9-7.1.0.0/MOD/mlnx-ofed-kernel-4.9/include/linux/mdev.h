@@ -10,6 +10,8 @@
 #ifndef MDEV_H
 #define MDEV_H
 
+#include <linux/uuid.h>
+
 struct mdev_device;
 
 /*

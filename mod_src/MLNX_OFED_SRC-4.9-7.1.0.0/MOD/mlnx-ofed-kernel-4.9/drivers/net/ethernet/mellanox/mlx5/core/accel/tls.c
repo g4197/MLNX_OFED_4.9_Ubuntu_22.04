@@ -31,6 +31,8 @@
  *
  */
 
+#ifdef HAVE_UAPI_LINUX_TLS_H
+
 #include <linux/mlx5/device.h>
 
 #include "accel/tls.h"
@@ -101,6 +103,7 @@ int mlx5_ktls_create_key(struct mlx5_core_dev *mdev,
 		sz_bytes = sizeof(info->key);
 		break;
 	}
+#ifdef TLS_CIPHER_AES_GCM_256
 	case TLS_CIPHER_AES_GCM_256: {
 		struct tls12_crypto_info_aes_gcm_256 *info =
 			(struct tls12_crypto_info_aes_gcm_256 *)crypto_info;
@@ -109,6 +112,7 @@ int mlx5_ktls_create_key(struct mlx5_core_dev *mdev,
 		sz_bytes = sizeof(info->key);
 		break;
 	}
+#endif
 	default:
 		return -EINVAL;
 	}
@@ -122,4 +126,6 @@ void mlx5_ktls_destroy_key(struct mlx5_core_dev *mdev, u32 key_id)
 {
 	mlx5_destroy_encryption_key(mdev, key_id);
 }
+#endif
+
 #endif

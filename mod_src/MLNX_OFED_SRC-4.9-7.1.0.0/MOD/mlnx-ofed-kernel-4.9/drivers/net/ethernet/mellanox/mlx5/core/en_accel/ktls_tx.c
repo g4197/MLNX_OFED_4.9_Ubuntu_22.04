@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0 OR Linux-OpenIB
 // Copyright (c) 2019 Mellanox Technologies.
+#ifdef HAVE_KTLS_STRUCTS
 
 #include <linux/tls.h>
 #include "en.h"
@@ -487,3 +488,4 @@ err_out:
 	dev_kfree_skb_any(skb);
 	return NULL;
 }
+#endif

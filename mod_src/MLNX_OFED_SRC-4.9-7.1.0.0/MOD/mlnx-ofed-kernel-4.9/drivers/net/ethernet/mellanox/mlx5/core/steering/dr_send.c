@@ -219,7 +219,11 @@ static void dr_destroy_qp(struct mlx5_core_dev *mdev,
 
 static void dr_cmd_notify_hw(struct mlx5dr_qp *dr_qp, void *ctrl)
 {
+#ifdef dma_wmb
 	dma_wmb();
+#else
+	wmb();
+#endif
 	*dr_qp->wq.sq.db = cpu_to_be32(dr_qp->sq.pc & 0xfffff);
 
 	/* After wmb() the hw aware of new work */

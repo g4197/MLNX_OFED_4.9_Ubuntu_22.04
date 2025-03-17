@@ -127,14 +127,22 @@ int mlx4_ib_create_srq(struct ib_srq *ib_srq,
 		if (err)
 			goto err_mtt;
 	} else {
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 		err = mlx4_db_alloc(dev->dev, &srq->db, 0);
+#else
+		err = mlx4_db_alloc(dev->dev, &srq->db, 0, GFP_KERNEL);
+#endif
 		if (err)
 			return err;
 
 		*srq->db.db = 0;
 
 		if (mlx4_buf_alloc(dev->dev, buf_size, PAGE_SIZE * 2,
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 				   &srq->buf)) {
+#else
+				   &srq->buf, GFP_KERNEL)) {
+#endif
 			err = -ENOMEM;
 			goto err_db;
 		}
@@ -159,7 +167,11 @@ int mlx4_ib_create_srq(struct ib_srq *ib_srq,
 		if (err)
 			goto err_buf;
 
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 		err = mlx4_buf_write_mtt(dev->dev, &srq->mtt, &srq->buf);
+#else
+		err = mlx4_buf_write_mtt(dev->dev, &srq->mtt, &srq->buf, GFP_KERNEL);
+#endif
 		if (err)
 			goto err_mtt;
 

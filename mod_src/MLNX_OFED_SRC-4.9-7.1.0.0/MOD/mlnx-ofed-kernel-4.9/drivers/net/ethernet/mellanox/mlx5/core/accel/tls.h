@@ -31,6 +31,8 @@
  *
  */
 
+#ifdef HAVE_UAPI_LINUX_TLS_H
+
 #ifndef __MLX5_ACCEL_TLS_H__
 #define __MLX5_ACCEL_TLS_H__
 
@@ -137,3 +139,5 @@ static inline void mlx5_accel_tls_cleanup(struct mlx5_core_dev *mdev) { }
 #endif
 
 #endif	/* __MLX5_ACCEL_TLS_H__ */
+
+#endif

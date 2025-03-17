@@ -31,6 +31,8 @@
  *
  */
 
+#ifdef HAVE_UAPI_LINUX_TLS_H
+
 #ifndef __MLX5E_TLS_RXTX_H__
 #define __MLX5E_TLS_RXTX_H__
 
@@ -52,3 +54,5 @@ void mlx5e_tls_handle_rx_skb(struct net_device *netdev, struct sk_buff *skb,
 #endif /* CONFIG_MLX5_EN_TLS */
 
 #endif /* __MLX5E_TLS_RXTX_H__ */
+
+#endif

@@ -104,8 +104,9 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
 	 * We do not need to touch priv if register_netdevice fails, so just
 	 * always use this flow.
 	 */
+#ifdef HAVE_NET_DEVICE_NEEDS_FREE_NETDEV
 	ndev->priv_destructor = ipoib_intf_free;
-
+#endif
 	/*
 	 * Racing with unregister of the parent must be prevented by the
 	 * caller.
@@ -120,6 +121,10 @@ int __ipoib_vlan_add(struct ipoib_dev_priv *ppriv, struct ipoib_dev_priv *priv,
 	priv->parent = ppriv->dev;
 	priv->pkey = pkey;
 	priv->child_type = type;
+
+#ifndef HAVE_NDO_GET_IFLINK
+	priv->dev->ifindex = 0;
+#endif
 
 	if (!is_child_unique(ppriv, priv)) {
 		result = -ENOTUNIQ;
@@ -163,8 +168,10 @@ sysfs_failed:
 	return -ENOMEM;
 
 out_early:
+#ifdef HAVE_NET_DEVICE_NEEDS_FREE_NETDEV
 	if (ndev->priv_destructor)
 		ndev->priv_destructor(ndev);
+#endif
 	return result;
 }
 
@@ -229,13 +236,15 @@ static void ipoib_vlan_delete_task(struct work_struct *work)
 	struct ipoib_vlan_delete_work *pwork =
 		container_of(work, struct ipoib_vlan_delete_work, work);
 	struct net_device *dev = pwork->dev;
+	struct ipoib_dev_priv *priv = NULL;
+	struct ipoib_dev_priv *ppriv = NULL;
 
 	rtnl_lock();
 
 	/* Unregistering tasks can race with another task or parent removal */
 	if (dev->reg_state == NETREG_REGISTERED) {
-		struct ipoib_dev_priv *priv = ipoib_priv(dev);
-		struct ipoib_dev_priv *ppriv = ipoib_priv(priv->parent);
+		priv = ipoib_priv(dev);
+		ppriv = ipoib_priv(priv->parent);
 
 		ipoib_dbg(ppriv, "delete child vlan %s\n", dev->name);
 		unregister_netdevice(dev);
@@ -243,6 +252,11 @@ static void ipoib_vlan_delete_task(struct work_struct *work)
 
 	rtnl_unlock();
 
+#ifndef HAVE_NET_DEVICE_NEEDS_FREE_NETDEV
+	rdma_uninit_netdev(priv->ca, priv->dev, priv->port,
+		RDMA_NETDEV_IPOIB, !ipoib_enhanced_enabled);
+	ipoib_intf_free(priv->dev);
+#endif
 	kfree(pwork);
 }
 

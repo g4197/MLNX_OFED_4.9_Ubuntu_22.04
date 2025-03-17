@@ -12,8 +12,10 @@
 #include <linux/bitops.h>
 #include <linux/lightnvm.h>
 #include <linux/vmalloc.h>
+#ifdef HAVE_NVM_USER_VIO
 #include <linux/sched/sysctl.h>
 #include <uapi/linux/lightnvm.h>
+#endif
 
 enum nvme_nvm_admin_opcode {
 	nvme_nvm_admin_identity		= 0xe2,
@@ -659,8 +661,21 @@ static struct request *nvme_nvm_alloc_request(struct request_queue *q,
 
 	rq->cmd_flags &= ~REQ_FAILFAST_DRIVER;
 
-	if (rqd->bio)
+	if (rqd->bio) {
+#ifdef HAVE_BLK_RQ_APPEND_BIO
+		blk_rq_append_bio(rq, &rqd->bio);
+#else
+#ifdef HAVE_BLK_INIT_REQUEST_FROM_BIO
 		blk_init_request_from_bio(rq, rqd->bio);
+#else
+		rq->ioprio = bio_prio(rqd->bio);
+		rq->__data_len = rqd->bio->bi_iter.bi_size;
+		rq->bio = rq->biotail = rqd->bio;
+		if (bio_has_data(rqd->bio))
+			rq->nr_phys_segments = bio_phys_segments(q, rqd->bio);
+#endif /* HAVE_BLK_INIT_REQUEST_FROM_BIO */
+#endif /* HAVE_BLK_RQ_APPEND_BIO */
+	}
 	else
 		rq->ioprio = IOPRIO_PRIO_VALUE(IOPRIO_CLASS_BE, IOPRIO_NORM);
 
@@ -762,6 +777,7 @@ static struct nvm_dev_ops nvme_nvm_dev_ops = {
 	.dev_dma_free		= nvme_nvm_dev_dma_free,
 };
 
+#ifdef HAVE_NVM_USER_VIO
 static int nvme_nvm_submit_user_cmd(struct request_queue *q,
 				struct nvme_ns *ns,
 				struct nvme_nvm_command *vcmd,
@@ -832,9 +848,23 @@ static int nvme_nvm_submit_user_cmd(struct request_queue *q,
 			vcmd->ph_rw.metadata = cpu_to_le64(metadata_dma);
 		}
 
+#ifdef HAVE_BIO_BI_DISK
 		bio->bi_disk = disk;
+#else
+		if (!disk)
+			goto submit;
+
+		bio->bi_bdev = bdget_disk(disk, 0);
+		if (!bio->bi_bdev) {
+			ret = -ENODEV;
+			goto err_meta;
+		}
+#endif
 	}
 
+#ifndef HAVE_BIO_BI_DISK
+submit:
+#endif
 	blk_execute_rq(q, NULL, rq, 0);
 
 	if (nvme_req(rq)->flags & NVME_REQ_CANCELLED)
@@ -854,8 +884,16 @@ err_meta:
 	if (meta_buf && meta_len)
 		dma_pool_free(dev->dma_pool, metadata, metadata_dma);
 err_map:
+#ifdef HAVE_BIO_BI_DISK
 	if (bio)
 		blk_rq_unmap_user(bio);
+#else
+	if (bio) {
+		if (disk && bio->bi_bdev)
+			bdput(bio->bi_bdev);
+		blk_rq_unmap_user(bio);
+	}
+#endif
 err_ppa:
 	if (ppa_buf && ppa_len)
 		dma_pool_free(dev->dma_pool, ppa_list, ppa_dma);
@@ -959,6 +997,7 @@ int nvme_nvm_ioctl(struct nvme_ns *ns, unsigned int cmd, unsigned long arg)
 		return -ENOTTY;
 	}
 }
+#endif /* HAVE_NVM_USER_VIO */
 
 int nvme_nvm_register(struct nvme_ns *ns, char *disk_name, int node)
 {

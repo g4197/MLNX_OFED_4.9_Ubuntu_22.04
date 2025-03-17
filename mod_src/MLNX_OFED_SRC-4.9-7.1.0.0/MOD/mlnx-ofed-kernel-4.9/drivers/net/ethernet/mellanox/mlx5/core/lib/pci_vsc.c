@@ -68,7 +68,11 @@ int mlx5_vsc_gw_lock(struct mlx5_core_dev *dev)
 	u32 lock_val;
 	int ret;
 
+#ifdef HAVE_PCI_CFG_ACCESS_LOCK
 	pci_cfg_access_lock(dev->pdev);
+#else
+	pci_block_user_cfg_access(dev->pdev);
+#endif
 	do {
 		if (retries > VSC_MAX_RETRIES) {
 			ret = -EBUSY;
@@ -107,7 +111,11 @@ int mlx5_vsc_gw_lock(struct mlx5_core_dev *dev)
 	return 0;
 
 pci_unlock:
+#ifdef HAVE_PCI_CFG_ACCESS_LOCK
 	pci_cfg_access_unlock(dev->pdev);
+#else
+	pci_unblock_user_cfg_access(dev->pdev);
+#endif
 	return ret;
 }
 
@@ -116,7 +124,11 @@ int mlx5_vsc_gw_unlock(struct mlx5_core_dev *dev)
 	int ret;
 
 	ret = vsc_write(dev, VSC_SEMAPHORE_OFFSET, MLX5_VSC_UNLOCK);
+#ifdef HAVE_PCI_CFG_ACCESS_LOCK
 	pci_cfg_access_unlock(dev->pdev);
+#else
+	pci_unblock_user_cfg_access(dev->pdev);
+#endif
 	return ret;
 }
 

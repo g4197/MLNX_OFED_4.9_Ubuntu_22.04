@@ -215,7 +215,10 @@ static void ipoib_ib_handle_rx_wc_rss(struct net_device *dev,
 	}
 
 	skb_pull(skb, IB_GRH_BYTES);
-
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,14,0)) && ! defined(HAVE_SK_BUFF_CSUM_LEVEL)
+	/* indicate size for reasmb, only for old kernels */
+	skb->truesize = SKB_TRUESIZE(skb->len);
+#endif
 	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
 	skb_add_pseudo_hdr(skb);
 
@@ -232,7 +235,14 @@ static void ipoib_ib_handle_rx_wc_rss(struct net_device *dev,
 			likely(wc->wc_flags & IB_WC_IP_CSUM_OK))
 		skb->ip_summed = CHECKSUM_UNNECESSARY;
 
-	napi_gro_receive(&recv_ring->napi, skb);
+#ifdef CONFIG_COMPAT_LRO_ENABLED_IPOIB
+		if (dev->features & NETIF_F_LRO)
+			lro_receive_skb(&recv_ring->lro.lro_mgr, skb, NULL);
+		else
+			netif_receive_skb(skb);
+#else
+		napi_gro_receive(&recv_ring->napi, skb);
+#endif
 
 repost:
 	if (unlikely(ipoib_ib_post_receive_rss(dev, recv_ring, wr_id)))
@@ -332,6 +342,10 @@ poll_more:
 	}
 
 	if (done < budget) {
+#ifdef CONFIG_COMPAT_LRO_ENABLED_IPOIB
+		if (dev->features & NETIF_F_LRO)
+			lro_flush_all(&rx_ring->lro.lro_mgr);
+#endif
 		napi_complete(napi);
 		if (unlikely(ib_req_notify_cq(rx_ring->recv_cq,
 					      IB_CQ_NEXT_COMP |

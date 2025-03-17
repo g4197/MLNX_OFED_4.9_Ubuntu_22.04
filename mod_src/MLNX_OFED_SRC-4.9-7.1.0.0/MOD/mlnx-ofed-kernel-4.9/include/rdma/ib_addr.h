@@ -48,6 +48,7 @@
 #include <rdma/ib_verbs.h>
 #include <rdma/ib_pack.h>
 #include <net/net_namespace.h>
+#include <linux/ethtool.h>
 
 /**
  * struct rdma_dev_addr - Contains resolved RDMA hardware addresses
@@ -133,7 +134,11 @@ static inline int rdma_addr_gid_offset(struct rdma_dev_addr *dev_addr)
 	return dev_addr->dev_type == ARPHRD_INFINIBAND ? 4 : 0;
 }
 
+#ifdef HAVE_IS_VLAN_DEV_CONST
 static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev)
+#else
+static inline u16 rdma_vlan_dev_vlan_id(struct net_device *dev)
+#endif
 {
 	return is_vlan_dev(dev) ? vlan_dev_vlan_id(dev) : 0xffff;
 }
@@ -223,22 +228,36 @@ static inline enum ib_mtu iboe_get_mtu(int mtu)
 
 static inline int iboe_get_rate(struct net_device *dev)
 {
+#ifndef HAVE___ETHTOOL_GET_LINK_KSETTINGS
+	struct ethtool_cmd cmd;
+#else
 	struct ethtool_link_ksettings cmd;
+#endif
+	u32 speed;
 	int err;
 
 	rtnl_lock();
+#ifndef HAVE___ETHTOOL_GET_LINK_KSETTINGS
+	err = __ethtool_get_settings(dev, &cmd);
+#else
 	err = __ethtool_get_link_ksettings(dev, &cmd);
+#endif
 	rtnl_unlock();
 	if (err)
 		return IB_RATE_PORT_CURRENT;
 
-	if (cmd.base.speed >= 40000)
+#ifndef HAVE___ETHTOOL_GET_LINK_KSETTINGS
+	speed = ethtool_cmd_speed(&cmd);
+#else
+	speed = cmd.base.speed;
+#endif
+	if (speed >= 40000)
 		return IB_RATE_40_GBPS;
-	else if (cmd.base.speed >= 30000)
+	else if (speed >= 30000)
 		return IB_RATE_30_GBPS;
-	else if (cmd.base.speed >= 20000)
+	else if (speed >= 20000)
 		return IB_RATE_20_GBPS;
-	else if (cmd.base.speed >= 10000)
+	else if (speed >= 10000)
 		return IB_RATE_10_GBPS;
 	else
 		return IB_RATE_PORT_CURRENT;
@@ -289,7 +308,11 @@ static inline u16 rdma_get_vlan_id(union ib_gid *dgid)
 	return vid < 0x1000 ? vid : 0xffff;
 }
 
+#ifdef HAVE_IS_VLAN_DEV_CONST
 static inline struct net_device *rdma_vlan_dev_real_dev(const struct net_device *dev)
+#else
+static inline struct net_device *rdma_vlan_dev_real_dev(struct net_device *dev)
+#endif
 {
 	return is_vlan_dev(dev) ? vlan_dev_real_dev(dev) : NULL;
 }

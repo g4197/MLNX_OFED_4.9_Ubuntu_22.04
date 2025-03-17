@@ -34,7 +34,11 @@
 #include <linux/errno.h>
 #include <linux/string.h>
 #include <linux/export.h>
+#ifdef HAVE_UAPI_LINUX_IF_ETHER_H
+#include <uapi/linux/if_ether.h>
+#else
 #include <linux/if_ether.h>
+#endif
 #include <linux/ip.h>
 
 #include <rdma/ib_pack.h>

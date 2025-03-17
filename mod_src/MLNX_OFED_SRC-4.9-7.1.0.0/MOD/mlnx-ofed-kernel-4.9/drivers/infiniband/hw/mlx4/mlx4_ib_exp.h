@@ -103,4 +103,11 @@ int mlx4_ib_set_qp_user_uar(struct ib_pd *pd, struct mlx4_ib_qp *qp,
 			  int is_exp);
 struct ib_mr *mlx4_ib_phys_addr(struct ib_pd *pd, u64 length, u64 virt_addr,
 				int access_flags);
+#ifdef HAVE_MM_STRUCT_FREE_AREA_CACHE
+unsigned long mlx4_ib_exp_get_unmapped_area(struct file *file,
+					    unsigned long addr,
+					    unsigned long len, unsigned long pgoff,
+					    unsigned long flags);
+#endif
+
 #endif

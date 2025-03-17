@@ -537,7 +537,11 @@ static struct ib_qp *ipoib_cm_create_tx_qp_rss(struct net_device *dev, struct ip
 		.sq_sig_type		= IB_SIGNAL_ALL_WR,
 		.qp_type		= IB_QPT_RC,
 		.qp_context		= tx,
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 		.create_flags		= 0
+#else
+		.create_flags           = IB_QP_CREATE_USE_GFP_NOIO
+#endif
 	};
 	struct ib_qp *tx_qp;
 
@@ -548,6 +552,12 @@ static struct ib_qp *ipoib_cm_create_tx_qp_rss(struct net_device *dev, struct ip
 			min_t(u32, priv->ca->attrs.max_send_sge, MAX_SKB_FRAGS + 1);
 
 	tx_qp = ib_create_qp(priv->pd, &attr);
+#ifndef HAVE_MEMALLOC_NOIO_SAVE
+	if (PTR_ERR(tx_qp) == -EINVAL) {
+		attr.create_flags &= ~IB_QP_CREATE_USE_GFP_NOIO;
+		tx_qp = ib_create_qp(priv->pd, &attr);
+	}
+#endif
 	tx->max_send_sge = attr.cap.max_send_sge;
 	return tx_qp;
 }

@@ -104,7 +104,11 @@ static int mlx4_ib_alloc_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *
 	int err;
 
 	err = mlx4_buf_alloc(dev->dev, nent * dev->dev->caps.cqe_size,
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 			     PAGE_SIZE * 2, &buf->buf);
+#else
+			     PAGE_SIZE * 2, &buf->buf, GFP_KERNEL);
+#endif
 
 	if (err)
 		goto out;
@@ -115,7 +119,11 @@ static int mlx4_ib_alloc_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *
 	if (err)
 		goto err_buf;
 
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 	err = mlx4_buf_write_mtt(dev->dev, &buf->mtt, &buf->buf);
+#else
+	err = mlx4_buf_write_mtt(dev->dev, &buf->mtt, &buf->buf, GFP_KERNEL);
+#endif
 	if (err)
 		goto err_mtt;
 
@@ -228,7 +236,11 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev,
 		uar = &context->uar;
 		cq->mcq.usage = MLX4_RES_USAGE_USER_VERBS;
 	} else {
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 		err = mlx4_db_alloc(dev->dev, &cq->db, 1);
+#else
+		err = mlx4_db_alloc(dev->dev, &cq->db, 1, GFP_KERNEL);
+#endif
 		if (err)
 			goto err_cq;
 

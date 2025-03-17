@@ -39,7 +39,9 @@
 #include <linux/vmalloc.h>
 #include <linux/moduleparam.h>
 #include <linux/sched/signal.h>
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 #include <linux/sched/mm.h>
+#endif
 
 #include "ipoib.h"
 
@@ -1083,7 +1085,11 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
 		.sq_sig_type		= IB_SIGNAL_ALL_WR,
 		.qp_type		= IB_QPT_RC,
 		.qp_context		= tx,
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 		.create_flags		= 0
+#else
+		.create_flags		= IB_QP_CREATE_USE_GFP_NOIO
+#endif
 	};
 	struct ib_qp *tx_qp;
 
@@ -1092,6 +1098,12 @@ static struct ib_qp *ipoib_cm_create_tx_qp(struct net_device *dev, struct ipoib_
 					      MAX_SKB_FRAGS + 1);
 
 	tx_qp = ib_create_qp(priv->pd, &attr);
+#ifndef HAVE_MEMALLOC_NOIO_SAVE
+	if (PTR_ERR(tx_qp) == -EINVAL) {
+		attr.create_flags &= ~IB_QP_CREATE_USE_GFP_NOIO;
+		tx_qp = ib_create_qp(priv->pd, &attr);
+	}
+#endif
 	tx->max_send_sge = attr.cap.max_send_sge;
 	return tx_qp;
 }
@@ -1162,20 +1174,31 @@ static int ipoib_cm_tx_init(struct ipoib_cm_tx *p, u32 qpn,
 			    struct sa_path_rec *pathrec)
 {
 	struct ipoib_dev_priv *priv = ipoib_priv(p->dev);
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 	unsigned int noio_flag;
+#endif
 	int ret;
 
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 	noio_flag = memalloc_noio_save();
 	p->tx_ring = vzalloc(array_size(priv->sendq_size, sizeof(*p->tx_ring)));
+#else
+	p->tx_ring = __vmalloc(priv->sendq_size * sizeof(*p->tx_ring),
+			       GFP_NOIO, PAGE_KERNEL);
+#endif
 	if (!p->tx_ring) {
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 		memalloc_noio_restore(noio_flag);
+#endif
 		ret = -ENOMEM;
 		goto err_tx;
 	}
 	memset(p->tx_ring, 0, priv->sendq_size * sizeof *p->tx_ring);
 
 	p->qp = priv->fp.ipoib_cm_create_tx_qp(p->dev, p);
+#ifdef HAVE_MEMALLOC_NOIO_SAVE
 	memalloc_noio_restore(noio_flag);
+#endif
 	if (IS_ERR(p->qp)) {
 		ret = PTR_ERR(p->qp);
 		ipoib_warn(priv, "failed to create tx qp: %d\n", ret);
@@ -1498,7 +1521,11 @@ static void ipoib_cm_skb_reap(struct work_struct *work)
 #if IS_ENABLED(CONFIG_IPV6)
 		else if (skb->protocol == htons(ETH_P_IPV6)) {
 			memset(IP6CB(skb), 0, sizeof(*IP6CB(skb)));
+#ifdef HAVE_ICMPV6_SEND_4_PARAMS
 			icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, mtu);
+#else
+			icmpv6_send(skb, ICMPV6_PKT_TOOBIG, 0, mtu, priv->dev);
+#endif
 		}
 #endif
 		dev_kfree_skb_any(skb);

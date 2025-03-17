@@ -31,12 +31,19 @@
  *
  */
 
+#ifdef HAVE_UAPI_LINUX_TLS_H
+
 #ifndef __MLX5_FPGA_TLS_H__
 #define __MLX5_FPGA_TLS_H__
 
 #include <linux/mlx5/driver.h>
 
+#ifdef HAVE_NET_TLS_H
 #include <net/tls.h>
+#else
+#include <uapi/linux/tls.h>
+#endif
+
 #include "fpga/core.h"
 
 struct mlx5_fpga_tls {
@@ -72,3 +79,5 @@ int mlx5_fpga_tls_resync_rx(struct mlx5_core_dev *mdev, u32 handle, u32 seq,
 			    u64 rcd_sn);
 
 #endif /* __MLX5_FPGA_TLS_H__ */
+
+#endif /* HAVE_UAPI_LINUX_TLS_H */

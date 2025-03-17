@@ -3,6 +3,8 @@
  * Copyright (C) 2016 Parav Pandit <pandit.parav@gmail.com>
  */
 
+#ifdef HAVE_CGROUP_RDMA_H
+
 #include "core_priv.h"
 
 /**
@@ -51,3 +53,5 @@ void ib_rdmacg_uncharge(struct ib_rdmacg_object *cg_obj,
 			resource_index);
 }
 EXPORT_SYMBOL(ib_rdmacg_uncharge);
+
+#endif /* HAVE_CGROUP_RDMA_H */

@@ -104,6 +104,9 @@ struct ipoib_recv_ring {
 	struct ipoib_rx_cm_info	cm;
 	struct ipoib_rx_ring_stats stats;
 	unsigned		index;
+#ifdef CONFIG_COMPAT_LRO_ENABLED_IPOIB
+	struct ipoib_lro lro;
+#endif
 };
 
 static inline void ipoib_build_sge_rss(struct ipoib_send_ring *send_ring,

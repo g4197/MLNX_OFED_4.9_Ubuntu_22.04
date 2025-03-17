@@ -7,7 +7,11 @@
 #define pr_fmt(fmt) "MFA2: " fmt
 
 #include "mlxfw_mfa2_tlv_multi.h"
+#ifdef HAVE_UAPI_LINUX_NETLINK_H
 #include <uapi/linux/netlink.h>
+#else
+#include <linux/netlink.h>
+#endif
 
 #define MLXFW_MFA2_TLV_TOTAL_SIZE(tlv) \
 	NLA_ALIGN(sizeof(*(tlv)) + be16_to_cpu((tlv)->len))

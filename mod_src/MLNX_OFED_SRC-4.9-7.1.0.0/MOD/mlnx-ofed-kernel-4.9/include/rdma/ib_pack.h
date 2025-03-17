@@ -34,7 +34,11 @@
 #define IB_PACK_H
 
 #include <rdma/ib_verbs.h>
+#ifdef HAVE_UAPI_LINUX_IF_ETHER_H
 #include <uapi/linux/if_ether.h>
+#else
+#include <linux/if_ether.h>
+#endif
 
 enum {
 	IB_LRH_BYTES		= 8,

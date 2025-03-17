@@ -35,6 +35,7 @@
 
 #include <linux/mlx5/driver.h>
 #include <linux/mlx5/mlx5_ifc.h>
+#include <linux/hashtable.h>
 
 #define MLX5_FS_DEFAULT_FLOW_TAG 0x0
 #define MLX5_FS_OFFLOAD_FLOW_TAG 0x800000

@@ -3,6 +3,11 @@
  * Copyright (c) 2015 Mellanox Technologies. All rights reserved.
  */
 
+/* build vs. Non-MLNX_OFED .h */
+#if 0
+#include_next <linux/nvme-rdma.h>
+#else
+
 #ifndef _LINUX_NVME_RDMA_H
 #define _LINUX_NVME_RDMA_H
 
@@ -85,3 +90,4 @@ struct nvme_rdma_cm_rej {
 };
 
 #endif /* _LINUX_NVME_RDMA_H */
+#endif /* build vs. Non-MLNX_OFED .h */

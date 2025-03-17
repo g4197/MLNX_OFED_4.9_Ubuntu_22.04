@@ -226,7 +226,11 @@ static inline struct mlx5_cqe64 *mlx5_cqwq_get_cqe(struct mlx5_cqwq *wq)
 		return NULL;
 
 	/* ensure cqe content is read after cqe ownership bit */
+#ifdef dma_rmb
 	dma_rmb();
+#else
+	rmb();
+#endif
 
 	return cqe;
 }

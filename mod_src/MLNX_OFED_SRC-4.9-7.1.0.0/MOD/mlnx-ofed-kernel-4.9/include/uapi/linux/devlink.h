@@ -26,6 +26,11 @@ enum devlink_eswitch_encap_mode {
 };
 #endif
 
+enum devlink_eswitch_steering_mode {
+	DEVLINK_ESWITCH_STEERING_MODE_DMFS,
+	DEVLINK_ESWITCH_STEERING_MODE_SMFS,
+};
+
 #ifdef HAVE_DEVLINK_H
 #include_next <uapi/linux/devlink.h>
 #else /* HAVE_DEVLINK_H */

@@ -261,7 +261,6 @@ id_map_alloc(struct ib_device *ibdev, int slave_id, u32 sl_cm_id)
 		spin_unlock(&sriov->id_map_lock);
 		return ent;
 	}
-
 	/*error flow*/
 	kfree(ent);
 	mlx4_ib_warn(ibdev, "Allocation failed (err:0x%x)\n", ret);

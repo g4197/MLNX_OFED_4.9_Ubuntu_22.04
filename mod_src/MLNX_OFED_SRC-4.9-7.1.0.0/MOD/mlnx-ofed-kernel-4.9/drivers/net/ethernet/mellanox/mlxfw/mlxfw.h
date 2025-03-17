@@ -72,13 +72,19 @@ struct mlxfw_dev {
 
 #if IS_REACHABLE(CONFIG_MLXFW)
 int mlxfw_firmware_flash(struct mlxfw_dev *mlxfw_dev,
-			 const struct firmware *firmware,
-			 struct netlink_ext_ack *extack);
+			 const struct firmware *firmware
+#ifdef HAVE_NETLINK_EXT_ACK
+			 , struct netlink_ext_ack *extack
+#endif
+			 );
 #else
 static inline
 int mlxfw_firmware_flash(struct mlxfw_dev *mlxfw_dev,
-			 const struct firmware *firmware,
-			 struct netlink_ext_ack *extack)
+			 const struct firmware *firmware
+#ifdef HAVE_NETLINK_EXT_ACK
+			 , struct netlink_ext_ack *extack
+#endif
+			 )
 {
 	return -EOPNOTSUPP;
 }

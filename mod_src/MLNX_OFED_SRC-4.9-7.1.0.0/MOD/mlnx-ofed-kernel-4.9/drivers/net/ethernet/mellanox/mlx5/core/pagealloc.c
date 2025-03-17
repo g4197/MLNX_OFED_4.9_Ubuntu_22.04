@@ -524,7 +524,11 @@ static int req_pages_handler(struct notifier_block *nb,
 		      func_id, npages);
 
 	priv->gc_allowed = false;
+#ifdef HAVE___CANCEL_DELAYED_WORK
+	__cancel_delayed_work(&priv->gc_dwork);
+#else
 	cancel_delayed_work(&priv->gc_dwork);
+#endif
 
 	req = kzalloc(sizeof(*req), GFP_ATOMIC);
 	if (!req) {
@@ -550,8 +554,8 @@ static int req_pages_handler(struct notifier_block *nb,
 
 int mlx5_satisfy_startup_pages(struct mlx5_core_dev *dev, int boot)
 {
-	u16 uninitialized_var(func_id);
-	s32 uninitialized_var(npages);
+	u16 func_id = 0;
+	s32 npages = 0;
 	int err;
 
 	err = mlx5_cmd_query_pages(dev, &func_id, &npages, boot);
@@ -686,7 +690,11 @@ void mlx5_pagealloc_start(struct mlx5_core_dev *dev)
 
 void mlx5_pagealloc_stop(struct mlx5_core_dev *dev)
 {
+#ifdef HAVE___CANCEL_DELAYED_WORK
+	__cancel_delayed_work(&dev->priv.gc_dwork);
+#else
 	cancel_delayed_work(&dev->priv.gc_dwork);
+#endif
 	dev->priv.gc_allowed = true;
 	queue_delayed_work(dev->priv.pg_wq, &dev->priv.gc_dwork, 0);
 	mlx5_eq_notifier_unregister(dev, &dev->priv.pg_nb);

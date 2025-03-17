@@ -674,7 +674,21 @@ extern void nvm_unregister_tgt_type(struct nvm_tgt_type *);
 extern void *nvm_dev_dma_alloc(struct nvm_dev *, gfp_t, dma_addr_t *);
 extern void nvm_dev_dma_free(struct nvm_dev *, void *, dma_addr_t);
 
+#ifdef HAVE_NVM_ALLOC_DEV_EXPORTED
 extern struct nvm_dev *nvm_alloc_dev(int);
+#else
+static inline struct nvm_dev *nvm_alloc_dev(int node)
+{
+	struct nvm_dev *dev;
+
+	dev = kzalloc_node(sizeof(struct nvm_dev), GFP_KERNEL, node);
+	if (dev)
+		kref_init(&dev->ref);
+
+	return dev;
+}
+#endif
+
 extern int nvm_register(struct nvm_dev *);
 extern void nvm_unregister(struct nvm_dev *);
 

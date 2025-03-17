@@ -5640,7 +5640,7 @@ static int _mlx5_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
 	struct mlx5_wqe_xrc_seg *xrc;
 	struct mlx5_bf *bf;
 	void *cur_edge;
-	int uninitialized_var(size);
+	int size = 0;
 	unsigned long flags;
 	unsigned idx;
 	int err = 0;
@@ -7199,9 +7199,18 @@ static void handle_drain_completion(struct ib_cq *cq,
 		if (triggered) {
 			/* Wait for any scheduled/running task to be ended */
 			switch (cq->poll_ctx) {
+#if IS_ENABLED(CONFIG_IRQ_POLL) || !defined(HAVE_IRQ_POLL_H)
 			case IB_POLL_SOFTIRQ:
+#if defined(HAVE_IRQ_POLL_H)
+#if IS_ENABLED(CONFIG_IRQ_POLL)
 				irq_poll_disable(&cq->iop);
 				irq_poll_enable(&cq->iop);
+#endif
+#else
+				blk_iopoll_disable(&cq->iop);
+				blk_iopoll_enable(&cq->iop);
+#endif
+#endif
 				break;
 			case IB_POLL_WORKQUEUE:
 				cancel_work_sync(&cq->work);

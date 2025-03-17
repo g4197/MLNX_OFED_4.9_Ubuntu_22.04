@@ -779,6 +779,10 @@ int is_non_trackable_alloc_func(const char *func_name)
 		"mlx4_crdump_collect_fw_health",
 		"mlx5e_page_alloc_mapped",
 		"mlx5e_put_page",
+#ifndef HAVE_XDP_FRAME
+		"mlx5e_xdp_xmit",
+		"mlx5e_free_xdpsq_desc",
+#endif
 		/* vnic skb functions */
 		"free_single_frag",
 		"vnic_alloc_rx_skb",
@@ -1119,8 +1123,8 @@ static ssize_t memtrack_read(struct file *filp,
 	}
 }
 
-static const struct file_operations memtrack_proc_fops = {
-	.read = memtrack_read,
+static const struct proc_ops memtrack_proc_fops = {
+	.proc_read = memtrack_read,
 };
 
 static const char *memtrack_proc_entry_name = "mt_memtrack";

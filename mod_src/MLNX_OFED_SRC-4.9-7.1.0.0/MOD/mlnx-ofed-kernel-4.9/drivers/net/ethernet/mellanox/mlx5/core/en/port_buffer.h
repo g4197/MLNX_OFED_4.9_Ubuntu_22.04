@@ -32,6 +32,7 @@
 #ifndef __MLX5_EN_PORT_BUFFER_H__
 #define __MLX5_EN_PORT_BUFFER_H__
 
+#include <linux/dcbnl.h>
 #include "en.h"
 #include "port.h"
 

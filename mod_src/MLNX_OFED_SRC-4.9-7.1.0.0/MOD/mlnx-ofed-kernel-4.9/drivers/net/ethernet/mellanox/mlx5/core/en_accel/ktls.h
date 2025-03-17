@@ -6,7 +6,7 @@
 
 #include "en.h"
 
-#ifdef CONFIG_MLX5_EN_TLS
+#if defined (CONFIG_MLX5_EN_TLS) && defined (HAVE_KTLS_STRUCTS)
 #include <net/tls.h>
 #include "accel/tls.h"
 
@@ -83,8 +83,8 @@ mlx5e_get_ktls_tx_priv_ctx(struct tls_context *tls_ctx)
 
 	return shadow->priv_tx;
 }
-
 void mlx5e_ktls_build_netdev(struct mlx5e_priv *priv);
+
 void mlx5e_ktls_tx_offload_set_pending(struct mlx5e_ktls_offload_context_tx *priv_tx);
 
 struct sk_buff *mlx5e_ktls_handle_tx_skb(struct net_device *netdev,
@@ -115,6 +115,20 @@ mlx5e_ktls_tx_handle_resync_dump_comp(struct mlx5e_txqsq *sq,
 				      struct mlx5e_tx_wqe_info *wi,
 				      u32 *dma_fifo_cc) {}
 
+static inline
+struct sk_buff *mlx5e_ktls_handle_tx_skb(struct net_device *netdev,
+					 struct mlx5e_txqsq *sq,
+					 struct sk_buff *skb,
+					 struct mlx5e_tx_wqe **wqe, u16 *pi)
+{
+	return skb;
+}
+static inline u8
+mlx5e_ktls_dumps_num_wqebbs(struct mlx5e_txqsq *sq, unsigned int nfrags,
+			    unsigned int sync_len)
+{
+	return 0;
+}
 #endif
 
 #endif /* __MLX5E_TLS_H__ */

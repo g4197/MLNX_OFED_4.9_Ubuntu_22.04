@@ -28,7 +28,15 @@ static void ib_cmem_release(struct kref *ref)
 	  */
 	if (current->mm) {
 		ntotal_pages = PAGE_ALIGN(cmem->length) >> PAGE_SHIFT;
+#ifdef HAVE_PINNED_VM
+#ifdef HAVE_ATOMIC_PINNED_VM
 		atomic64_sub(ntotal_pages, &current->mm->pinned_vm);
+#else
+		current->mm->pinned_vm -= ntotal_pages;
+#endif /*HAVE_ATOMIC_PINNED_VM*/
+#else
+		current->mm->locked_vm -= ntotal_pages;
+#endif
 	}
 	kfree(cmem);
 }
@@ -185,7 +193,15 @@ struct ib_cmem *ib_cmem_alloc_contiguous_pages(struct ib_ucontext *context,
 	  * with mm->mmap_sem held for writing.
 	  * No need to lock
 	  */
+#ifdef HAVE_PINNED_VM
+#ifdef HAVE_ATOMIC_PINNED_VM
 	locked     = ntotal_pages + atomic64_read(&current->mm->pinned_vm);
+#else
+	locked     = ntotal_pages + current->mm->pinned_vm;
+#endif /*HAVE_ATOMIC_PINNED_VM*/
+#else
+	locked     = ntotal_pages + current->mm->locked_vm;
+#endif
 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
 
 	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK))
@@ -235,7 +251,15 @@ struct ib_cmem *ib_cmem_alloc_contiguous_pages(struct ib_ucontext *context,
 	}
 
 	cmem->length = total_size;
+#ifdef HAVE_PINNED_VM
+#ifdef HAVE_ATOMIC_PINNED_VM
 	atomic64_set(&current->mm->pinned_vm, locked);
+#else
+	current->mm->pinned_vm = locked;
+#endif /*HAVE_ATOMIC_PINNED_VM*/
+#else
+	current->mm->locked_vm = locked;
+#endif
 	return cmem;
 
 err_alloc:

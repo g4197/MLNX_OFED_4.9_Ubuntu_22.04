@@ -29,7 +29,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
+#include <linux/ethtool.h>
 #include <linux/mlx5/fs.h>
 #include "en.h"
 #include "en_accel/ipsec_rxtx.h"
@@ -71,14 +71,18 @@ static struct mlx5e_ethtool_table *get_flow_table(struct mlx5e_priv *priv,
 	case ESP_V4_FLOW:
 	case ESP_V6_FLOW:
 #endif
+#ifdef HAVE_IPV6_USER_FLOW
 	case TCP_V6_FLOW:
 	case UDP_V6_FLOW:
+#endif
 		max_tuples = ETHTOOL_NUM_L3_L4_FTS;
 		prio = MLX5E_ETHTOOL_L3_L4_PRIO + (max_tuples - num_tuples);
 		eth_ft = &priv->fs.ethtool.l3_l4_ft[prio];
 		break;
 	case IP_USER_FLOW:
+#ifdef HAVE_IPV6_USER_FLOW
 	case IPV6_USER_FLOW:
+#endif
 		max_tuples = ETHTOOL_NUM_L3_L4_FTS;
 		prio = MLX5E_ETHTOOL_L3_L4_PRIO + (max_tuples - num_tuples);
 		eth_ft = &priv->fs.ethtool.l3_l4_ft[prio];
@@ -150,6 +154,7 @@ set_ip4(void *headers_c, void *headers_v, __be32 ip4src_m,
 	MLX5E_FTE_SET(headers_v, ethertype, ETH_P_IP);
 }
 
+#ifdef HAVE_IPV6_USER_FLOW
 static void
 set_ip6(void *headers_c, void *headers_v, __be32 ip6src_m[4],
 	__be32 ip6src_v[4], __be32 ip6dst_m[4], __be32 ip6dst_v[4])
@@ -172,6 +177,7 @@ set_ip6(void *headers_c, void *headers_v, __be32 ip6src_m[4],
 	MLX5E_FTE_SET(headers_c, ethertype, 0xffff);
 	MLX5E_FTE_SET(headers_v, ethertype, ETH_P_IPV6);
 }
+#endif
 
 static void
 set_tcp(void *headers_c, void *headers_v, __be16 psrc_m, __be16 psrc_v,
@@ -249,6 +255,7 @@ parse_ip4(void *headers_c, void *headers_v, struct ethtool_rx_flow_spec *fs)
 	}
 }
 
+#ifdef HAVE_IPV6_USER_FLOW
 static void
 parse_ip6(void *headers_c, void *headers_v, struct ethtool_rx_flow_spec *fs)
 {
@@ -289,6 +296,7 @@ parse_udp6(void *headers_c, void *headers_v, struct ethtool_rx_flow_spec *fs)
 	set_udp(headers_c, headers_v, l4_mask->psrc, l4_val->psrc,
 		l4_mask->pdst, l4_val->pdst);
 }
+#endif
 
 static void
 parse_ether(void *headers_c, void *headers_v, struct ethtool_rx_flow_spec *fs)
@@ -305,6 +313,7 @@ parse_ether(void *headers_c, void *headers_v, struct ethtool_rx_flow_spec *fs)
 	MLX5E_FTE_SET(headers_v, ethertype, ntohs(eth_val->h_proto));
 }
 
+#ifdef HAVE_ETHTOOL_FLOW_EXT_H_DEST
 static void
 set_cvlan(void *headers_c, void *headers_v, __be16 vlan_tci)
 {
@@ -321,6 +330,7 @@ set_dmac(void *headers_c, void *headers_v,
 	ether_addr_copy(MLX5E_FTE_ADDR_OF(headers_c, dmac_47_16), m_dest);
 	ether_addr_copy(MLX5E_FTE_ADDR_OF(headers_v, dmac_47_16), v_dest);
 }
+#endif
 
 static int set_flow_attrs(u32 *match_c, u32 *match_v,
 			  struct ethtool_rx_flow_spec *fs, struct mlx5e_priv *priv)
@@ -351,6 +361,7 @@ static int set_flow_attrs(u32 *match_c, u32 *match_v,
 	case IP_USER_FLOW:
 		parse_ip4(outer_headers_c, outer_headers_v, fs);
 		break;
+#ifdef HAVE_IPV6_USER_FLOW
 	case TCP_V6_FLOW:
 		parse_tcp6(outer_headers_c, outer_headers_v, fs);
 		break;
@@ -360,6 +371,7 @@ static int set_flow_attrs(u32 *match_c, u32 *match_v,
 	case IPV6_USER_FLOW:
 		parse_ip6(outer_headers_c, outer_headers_v, fs);
 		break;
+#endif
 	case ETHER_FLOW:
 		parse_ether(outer_headers_c, outer_headers_v, fs);
 		break;
@@ -367,6 +379,7 @@ static int set_flow_attrs(u32 *match_c, u32 *match_v,
 		return -EINVAL;
 	}
 
+#ifdef HAVE_ETHTOOL_FLOW_EXT_H_DEST
 	if ((fs->flow_type & FLOW_EXT) &&
 	    (fs->m_ext.vlan_tci & cpu_to_be16(VLAN_VID_MASK)))
 		set_cvlan(outer_headers_c, outer_headers_v, fs->h_ext.vlan_tci);
@@ -377,6 +390,7 @@ static int set_flow_attrs(u32 *match_c, u32 *match_v,
 		set_dmac(outer_headers_c, outer_headers_v, fs->m_ext.h_dest,
 			 fs->h_ext.h_dest);
 	}
+#endif
 
 	return 0;
 }
@@ -565,6 +579,7 @@ static int validate_ip4(struct ethtool_rx_flow_spec *fs)
 	return ++ntuples;
 }
 
+#ifdef HAVE_IPV6_USER_FLOW
 static int validate_ip6(struct ethtool_rx_flow_spec *fs)
 {
 	struct ethtool_usrip6_spec *l3_mask = &fs->m_u.usr_ip6_spec;
@@ -604,7 +619,8 @@ static int validate_tcpudp6(struct ethtool_rx_flow_spec *fs)
 	/* Flow is TCP/UDP */
 	return ++ntuples;
 }
-
+#endif
+#ifdef HAVE_ETHTOOL_FLOW_EXT_H_DEST
 static int validate_vlan(struct ethtool_rx_flow_spec *fs)
 {
 	if (fs->m_ext.vlan_etype ||
@@ -617,7 +633,7 @@ static int validate_vlan(struct ethtool_rx_flow_spec *fs)
 
 	return 1;
 }
-
+#endif
 static int validate_flow(struct mlx5e_priv *priv,
 			 struct ethtool_rx_flow_spec *fs)
 {
@@ -667,6 +683,7 @@ static int validate_flow(struct mlx5e_priv *priv,
 			return ret;
 		num_tuples += ret;
 		break;
+#ifdef HAVE_IPV6_USER_FLOW
 	case TCP_V6_FLOW:
 	case UDP_V6_FLOW:
 		ret = validate_tcpudp6(fs);
@@ -680,9 +697,11 @@ static int validate_flow(struct mlx5e_priv *priv,
 			return ret;
 		num_tuples += ret;
 		break;
+#endif
 	default:
 		return -ENOTSUPP;
 	}
+#ifdef HAVE_ETHTOOL_FLOW_EXT_H_DEST
 	if ((fs->flow_type & FLOW_EXT)) {
 		ret = validate_vlan(fs);
 		if (ret < 0)
@@ -693,6 +712,7 @@ static int validate_flow(struct mlx5e_priv *priv,
 	if (fs->flow_type & FLOW_MAC_EXT &&
 	    !is_zero_ether_addr(fs->m_ext.h_dest))
 		num_tuples++;
+#endif
 
 	return num_tuples;
 }
@@ -923,6 +943,7 @@ static int mlx5e_get_rss_hash_opt(struct mlx5e_priv *priv,
 	return 0;
 }
 
+#ifdef CONFIG_MLX5_EN_RXNFC
 int mlx5e_set_rxnfc(struct net_device *dev, struct ethtool_rxnfc *cmd)
 {
 	int err = 0;
@@ -947,7 +968,11 @@ int mlx5e_set_rxnfc(struct net_device *dev, struct ethtool_rxnfc *cmd)
 }
 
 int mlx5e_get_rxnfc(struct net_device *dev,
+#ifdef HAVE_ETHTOOL_OPS_GET_RXNFC_U32_RULE_LOCS
 		    struct ethtool_rxnfc *info, u32 *rule_locs)
+#else
+			   struct ethtool_rxnfc *info, void *rule_locs)
+#endif
 {
 	struct mlx5e_priv *priv = netdev_priv(dev);
 	int err = 0;
@@ -975,4 +1000,4 @@ int mlx5e_get_rxnfc(struct net_device *dev,
 
 	return err;
 }
-
+#endif

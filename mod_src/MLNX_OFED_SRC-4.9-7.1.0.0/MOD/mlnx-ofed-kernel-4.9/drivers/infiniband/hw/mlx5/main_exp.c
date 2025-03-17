@@ -31,7 +31,9 @@
  */
 
 #if defined(CONFIG_X86)
+#if defined(HAVE_PAT_ENABLED_AS_FUNCTION)
 #include <asm/pat.h>
+#endif /* HAVE_PAT_ENABLED_AS_FUNCTION */
 #endif
 #include <linux/inet.h>
 #include <linux/sort.h>
@@ -1167,7 +1169,11 @@ static ssize_t dc_attr_store(struct kobject *kobj,
 	return dc_attr->store(d, dc_attr, buf, size);
 }
 
+#ifdef CONFIG_COMPAT_IS_CONST_KOBJECT_SYSFS_OPS
 static const struct sysfs_ops dc_sysfs_ops = {
+#else
+static struct sysfs_ops dc_sysfs_ops = {
+#endif
 	.show = dc_attr_show,
 	.store = dc_attr_store
 };
@@ -2451,6 +2457,9 @@ int alloc_and_map_wc(struct mlx5_ib_dev *dev,
 	size_t map_size = vma->vm_end - vma->vm_start;
 	pgprot_t vm_page_prot;
 	int err;
+#if defined(CONFIG_X86) && !defined(HAVE_PAT_ENABLED_AS_FUNCTION)
+	pgprot_t prot = __pgprot(0);
+#endif
 
 	if (indx % uars_per_page) {
 		mlx5_ib_warn(dev, "invalid uar index %d, should be system page aligned and there are %d uars per page.\n",
@@ -2459,7 +2468,11 @@ int alloc_and_map_wc(struct mlx5_ib_dev *dev,
 	}
 
 #if defined(CONFIG_X86)
+#ifdef HAVE_PAT_ENABLED_AS_FUNCTION
 	if (!pat_enabled()) {
+#else
+	if (pgprot_val(pgprot_writecombine(prot)) == pgprot_val(pgprot_noncached(prot))) {
+#endif
 		mlx5_ib_dbg(dev, "write combine not available\n");
 		return -EPERM;
 	}
@@ -2533,7 +2546,7 @@ struct ib_dm *mlx5_ib_exp_alloc_dm(struct ib_device *ibdev,
 	dm->size = act_size;
 
 	if (context) {
-		down_read(&current->mm->mmap_sem);
+		mmap_read_lock(current->mm);
 		vma = find_vma(current->mm, uaddr & PAGE_MASK);
 		if (!vma || (vma->vm_end - vma->vm_start < map_size)) {
 			ret = -EINVAL;
@@ -2555,7 +2568,7 @@ struct ib_dm *mlx5_ib_exp_alloc_dm(struct ib_device *ibdev,
 			goto err_vma;
 		}
 
-		up_read(&current->mm->mmap_sem);
+		mmap_read_unlock(current->mm);
 	} else {
 		dm->dm_base_addr = ioremap(memic_addr, length);
 		if (!dm->dm_base_addr) {
@@ -2570,7 +2583,7 @@ struct ib_dm *mlx5_ib_exp_alloc_dm(struct ib_device *ibdev,
 	return &dm->ibdm;
 
 err_vma:
-	up_read(&current->mm->mmap_sem);
+	mmap_read_unlock(current->mm);
 
 err_map:
 	mlx5_cmd_dealloc_memic(dm_db, memic_addr, act_size);
@@ -2603,3 +2616,66 @@ int mlx5_ib_exp_set_context_attr(struct ib_device *device,
 
 	return 0;
 }
+
+#ifdef HAVE_MM_STRUCT_FREE_AREA_CACHE
+static int get_command(unsigned long offset)
+{
+	int cmd = (offset >> MLX5_IB_MMAP_CMD_SHIFT) & MLX5_IB_MMAP_CMD_MASK;
+
+	return (cmd == MLX5_IB_EXP_MMAP_CORE_CLOCK) ? MLX5_IB_MMAP_CORE_CLOCK :
+		cmd;
+}
+
+unsigned long mlx5_ib_exp_get_unmapped_area(struct file *file,
+					    unsigned long addr,
+					    unsigned long len,
+					    unsigned long pgoff,
+					    unsigned long flags)
+{
+	struct mm_struct *mm;
+	struct vm_area_struct *vma;
+	unsigned long start_addr;
+	unsigned long order;
+	unsigned long command;
+
+	mm = current->mm;
+	if (addr)
+		return current->mm->get_unmapped_area(file, addr, len,
+						      pgoff, flags);
+
+	command = get_command(pgoff);
+	if (command == MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES ||
+            command == MLX5_IB_EXP_MMAP_GET_CONTIGUOUS_PAGES_DEV_NUMA ||
+	    command == MLX5_IB_EXP_MMAP_GET_CONTIGUOUS_PAGES_CPU_NUMA)
+		goto flow;
+
+	return current->mm->get_unmapped_area(file, addr, len,
+						      pgoff, flags);
+
+flow:
+	order = get_pg_order(pgoff);
+
+	/*
+	 * code is based on the huge-pages get_unmapped_area code
+	 */
+	start_addr = mm->free_area_cache;
+	if (len <= mm->cached_hole_size)
+		start_addr = TASK_UNMAPPED_BASE;
+full_search:
+	addr = ALIGN(start_addr, 1 << order);
+
+	for (vma = find_vma(mm, addr); ; vma = vma->vm_next) {
+		if (addr > TASK_SIZE - len) {
+			if (start_addr != TASK_UNMAPPED_BASE) {
+				start_addr = TASK_UNMAPPED_BASE;
+				goto full_search;
+			}
+			return -ENOMEM;
+		}
+
+		if (!vma || addr + len <= vma->vm_start)
+			return addr;
+		addr = ALIGN(vma->vm_end, 1 << order);
+	}
+}
+#endif

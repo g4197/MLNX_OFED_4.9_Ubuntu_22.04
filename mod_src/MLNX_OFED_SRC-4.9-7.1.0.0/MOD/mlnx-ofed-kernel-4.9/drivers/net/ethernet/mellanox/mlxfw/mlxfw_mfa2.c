@@ -7,6 +7,7 @@
 #define pr_fmt(fmt) "mlxfw_mfa2: " fmt
 
 #include <linux/kernel.h>
+#include <linux/printk.h>
 #include <linux/module.h>
 #include <linux/netlink.h>
 #include <linux/xz.h>

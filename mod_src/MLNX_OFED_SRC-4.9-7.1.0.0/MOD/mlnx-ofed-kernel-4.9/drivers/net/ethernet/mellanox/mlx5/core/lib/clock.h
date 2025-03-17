@@ -48,11 +48,15 @@ static inline ktime_t mlx5_timecounter_cyc2time(struct mlx5_clock *clock,
 	unsigned int seq;
 	u64 nsec;
 
+#if defined (HAVE_PTP_CLOCK_INFO) && (defined (CONFIG_PTP_1588_CLOCK) || defined(CONFIG_PTP_1588_CLOCK_MODULE))
 	do {
 		seq = read_seqbegin(&clock->lock);
 		nsec = timecounter_cyc2time(&clock->tc, timestamp);
 	} while (read_seqretry(&clock->lock, seq));
 
+#else
+	nsec = 0 ;
+#endif
 	return ns_to_ktime(nsec);
 }
 
@@ -67,7 +71,13 @@ static inline int mlx5_clock_get_ptp_index(struct mlx5_core_dev *mdev)
 static inline ktime_t mlx5_timecounter_cyc2time(struct mlx5_clock *clock,
 						u64 timestamp)
 {
+#ifdef HAVE_KTIME_UNION_TV64
+	ktime_t x;
+	x.tv64 = 0;
+	return x;
+#else
 	return 0;
+#endif
 }
 #endif
 

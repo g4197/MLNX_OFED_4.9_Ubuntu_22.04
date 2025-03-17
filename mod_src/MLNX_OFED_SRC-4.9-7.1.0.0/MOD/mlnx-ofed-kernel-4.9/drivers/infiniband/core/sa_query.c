@@ -42,7 +42,11 @@
 #include <linux/kref.h>
 #include <linux/xarray.h>
 #include <linux/workqueue.h>
+#ifdef HAVE_UAPI_LINUX_IF_ETHER_H
 #include <uapi/linux/if_ether.h>
+#else
+#include <linux/if_ether.h>
+#endif
 #include <rdma/ib_pack.h>
 #include <rdma/ib_cache.h>
 #include <rdma/rdma_netlink.h>
@@ -759,7 +763,8 @@ static void ib_nl_set_path_rec_attrs(struct sk_buff *skb,
 	query->mad_buf->context[1] = NULL;
 
 	/* Construct the family header first */
-	header = skb_put(skb, NLMSG_ALIGN(sizeof(*header)));
+	header = (struct rdma_ls_resolve_header *)
+		skb_put(skb, NLMSG_ALIGN(sizeof(*header)));
 	memcpy(header->device_name, dev_name(&query->port->agent->device->dev),
 	       LS_DEVICE_NAME_MAX);
 	header->port_num = query->port->port_num;
@@ -1012,8 +1017,12 @@ static void ib_nl_request_timeout(struct work_struct *work)
 }
 
 int ib_nl_handle_set_timeout(struct sk_buff *skb,
+#ifdef HAVE_NETLINK_EXT_ACK
 			     struct nlmsghdr *nlh,
 			     struct netlink_ext_ack *extack)
+#else
+			     struct nlmsghdr *nlh)
+#endif
 {
 	int timeout, delta, abs_delta;
 	const struct nlattr *attr;
@@ -1024,11 +1033,23 @@ int ib_nl_handle_set_timeout(struct sk_buff *skb,
 	int ret;
 
 	if (!(nlh->nlmsg_flags & NLM_F_REQUEST) ||
-	    !(NETLINK_CB(skb).sk))
+#ifdef HAVE_NETLINK_CAPABLE
+#ifdef HAVE_NETLINK_SKB_PARMS_SK
+           !(NETLINK_CB(skb).sk))
+#else
+	    !(NETLINK_CB(skb).ssk))
+#endif
+#else
+	    sock_net(skb->sk) != &init_net)
+#endif
 		return -EPERM;
-
+#ifdef HAVE_NLA_PARSE_DEPRECATED
 	ret = nla_parse_deprecated(tb, LS_NLA_TYPE_MAX - 1, nlmsg_data(nlh),
 				   nlmsg_len(nlh), ib_nl_policy, NULL);
+#else
+	ret = nla_parse(tb, LS_NLA_TYPE_MAX - 1, nlmsg_data(nlh),
+		                nlmsg_len(nlh), ib_nl_policy, NULL);
+#endif /*HAVE_NLA_PARSE_DEPRECATED*/
 	attr = (const struct nlattr *)tb[LS_NLA_TYPE_TIMEOUT];
 	if (ret || !attr)
 		goto settimeout_out;
@@ -1079,8 +1100,13 @@ static inline int ib_nl_is_good_resolve_resp(const struct nlmsghdr *nlh)
 	if (nlh->nlmsg_flags & RDMA_NL_LS_F_ERR)
 		return 0;
 
+#ifdef HAVE_NLA_PARSE_DEPRECATED
 	ret = nla_parse_deprecated(tb, LS_NLA_TYPE_MAX - 1, nlmsg_data(nlh),
 				   nlmsg_len(nlh), ib_nl_policy, NULL);
+#else
+	ret = nla_parse(tb, LS_NLA_TYPE_MAX - 1, nlmsg_data(nlh),
+	                        nlmsg_len(nlh), ib_nl_policy, NULL);
+#endif
 	if (ret)
 		return 0;
 
@@ -1088,8 +1114,12 @@ static inline int ib_nl_is_good_resolve_resp(const struct nlmsghdr *nlh)
 }
 
 int ib_nl_handle_resolve_resp(struct sk_buff *skb,
+#ifdef HAVE_NETLINK_EXT_ACK
 			      struct nlmsghdr *nlh,
 			      struct netlink_ext_ack *extack)
+#else
+			      struct nlmsghdr *nlh)
+#endif
 {
 	unsigned long flags;
 	struct ib_sa_query *query;
@@ -1099,7 +1129,15 @@ int ib_nl_handle_resolve_resp(struct sk_buff *skb,
 	int ret;
 
 	if ((nlh->nlmsg_flags & NLM_F_REQUEST) ||
+#ifdef HAVE_NETLINK_CAPABLE
+#ifdef HAVE_NETLINK_SKB_PARMS_SK
 	    !(NETLINK_CB(skb).sk))
+#else
+	    !(NETLINK_CB(skb).ssk))
+#endif
+#else
+	    sock_net(skb->sk) != &init_net)
+#endif
 		return -EPERM;
 
 	spin_lock_irqsave(&ib_nl_request_lock, flags);
@@ -1369,13 +1407,11 @@ static int send_mad(struct ib_sa_query *query, unsigned long timeout_ms,
 {
 	unsigned long flags;
 	int ret, id;
-
 	xa_lock_irqsave(&queries, flags);
 	ret = __xa_alloc(&queries, &id, query, xa_limit_32b, gfp_mask);
 	xa_unlock_irqrestore(&queries, flags);
 	if (ret < 0)
 		return ret;
-
 	query->mad_buf->timeout_ms  = timeout_ms;
 	query->mad_buf->retries = retries;
 	query->mad_buf->context[0] = query;

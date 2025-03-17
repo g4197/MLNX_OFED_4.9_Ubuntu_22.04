@@ -360,9 +360,13 @@ static int mlx5_get_pcie_dev_link_caps(struct pci_dev *pdev,
 		*width = (lnkcap1 & PCI_EXP_LNKCAP_MLW) >>
 			PCI_EXP_LNKCAP_MLW_SHIFT;
 		if (*speed == PCI_SPEED_UNKNOWN) { /* pre-r3.0 */
+#ifdef PCI_EXP_LNKCAP_SLS_8_0GB
 			if (lnkcap1 & PCI_EXP_LNKCAP_SLS_8_0GB)
 				*speed = PCIE_SPEED_8_0GT;
 			else if (lnkcap1 & PCI_EXP_LNKCAP_SLS_5_0GB)
+#else
+			if (lnkcap1 & PCI_EXP_LNKCAP_SLS_5_0GB)
+#endif
 				*speed = PCIE_SPEED_5_0GT;
 			else if (lnkcap1 & PCI_EXP_LNKCAP_SLS_2_5GB)
 				*speed = PCIE_SPEED_2_5GT;

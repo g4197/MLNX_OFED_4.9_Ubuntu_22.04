@@ -478,7 +478,11 @@ static void uapi_remove_range(struct uverbs_api *uapi, u32 start, u32 last)
 		if (iter.index > last)
 			return;
 		kfree(rcu_dereference_protected(*slot, true));
+#if defined(HAVE_RADIX_TREE_ITER_DELETE) && defined (HAVE_RADIX_TREE_ITER_DELETE_EXPORTED)
 		radix_tree_iter_delete(&uapi->radix, &iter, slot);
+#else
+		radix_tree_delete(&uapi->radix, iter.index);
+#endif
 	}
 }
 
@@ -567,7 +571,11 @@ again:
 
 			if (method_elm->disabled) {
 				kfree(method_elm);
-				radix_tree_iter_delete(&uapi->radix, &iter, slot);
+#if defined(HAVE_RADIX_TREE_ITER_DELETE) && defined (HAVE_RADIX_TREE_ITER_DELETE_EXPORTED)
+       			radix_tree_iter_delete(&uapi->radix, &iter, slot);
+#else
+			radix_tree_delete(&uapi->radix, iter.index);
+#endif
 			}
 			continue;
 		}

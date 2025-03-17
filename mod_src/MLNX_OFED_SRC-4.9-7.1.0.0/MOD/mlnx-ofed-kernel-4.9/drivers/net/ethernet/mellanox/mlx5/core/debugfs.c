@@ -257,6 +257,11 @@ int mlx5_cmdif_debugfs_init(struct mlx5_core_dev *dev)
 				goto out;
 			}
 
+#ifndef HAVE_DEBUGFS_CREATE_U8_RET_STRUCT
+			debugfs_create_u64("n", 0400,
+					   stats->root,
+					   &stats->n);
+#else
 			stats->count = debugfs_create_u64("n", 0400,
 							  stats->root,
 							  &stats->n);
@@ -265,6 +270,7 @@ int mlx5_cmdif_debugfs_init(struct mlx5_core_dev *dev)
 				err = -ENOMEM;
 				goto out;
 			}
+#endif
 		}
 	}
 

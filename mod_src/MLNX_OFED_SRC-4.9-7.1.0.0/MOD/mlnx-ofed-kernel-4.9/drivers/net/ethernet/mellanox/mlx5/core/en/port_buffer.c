@@ -31,6 +31,8 @@
  */
 #include "port_buffer.h"
 
+#ifdef HAVE_IEEE_DCBNL_ETS
+#ifdef CONFIG_MLX5_CORE_EN_DCB
 int mlx5e_port_query_buffer(struct mlx5e_priv *priv,
 			    struct mlx5e_port_buffer *port_buffer)
 {
@@ -256,7 +258,14 @@ int mlx5e_port_manual_buffer_config(struct mlx5e_priv *priv,
 	int i;
 
 	mlx5e_dbg(HW, priv, "%s: change=%x\n", __func__, change);
+#if defined(HAVE_NET_DEVICE_MIN_MAX_MTU)
 	max_mtu = max_t(unsigned int, priv->netdev->max_mtu, MINIMUM_MAX_MTU);
+#elif defined(HAVE_NET_DEVICE_MIN_MAX_MTU_EXTENDED)
+	max_mtu = max_t(unsigned int, priv->netdev->extended->min_mtu, MINIMUM_MAX_MTU);
+#else
+	max_mtu = mtu;
+#endif
+
 
 	err = mlx5e_port_query_buffer(priv, &port_buffer);
 	if (err)
@@ -337,3 +346,5 @@ int mlx5e_port_manual_buffer_config(struct mlx5e_priv *priv,
 
 	return err;
 }
+#endif
+#endif
