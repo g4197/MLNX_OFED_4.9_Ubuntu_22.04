@@ -1723,9 +1723,9 @@ Change-Id: I75f903d3f053553a0ea5cb5437662b1d0ec8c817
  	struct udphdr *udph;
 +#endif
  	u8 proto;
-+#ifdef HAVE_KERNEL_WITH_VXLAN_SUPPORT_ON
++ 
  	u16 port;
-+#endif
++ 
  
  	switch (vlan_get_protocol(skb)) {
  	case htons(ETH_P_IP):

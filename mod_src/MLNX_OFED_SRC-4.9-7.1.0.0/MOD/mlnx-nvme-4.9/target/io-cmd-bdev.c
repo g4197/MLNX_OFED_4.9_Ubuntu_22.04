@@ -160,7 +160,7 @@ static void nvmet_bdev_execute_rw(struct nvmet_req *req)
 		bio->bi_max_vecs = ARRAY_SIZE(req->inline_bvec);
 #endif
 	} else {
-		bio = bio_alloc(GFP_KERNEL, min(sg_cnt, BIO_MAX_PAGES));
+		bio = bio_alloc(GFP_KERNEL, bio_max_segs(sg_cnt));
 	}
 #ifdef HAVE_BIO_BI_DISK
 	bio_set_dev(bio, req->ns->bdev);
@@ -185,7 +185,7 @@ static void nvmet_bdev_execute_rw(struct nvmet_req *req)
 				!= sg->length) {
 			struct bio *prev = bio;
 
-			bio = bio_alloc(GFP_KERNEL, min(sg_cnt, BIO_MAX_PAGES));
+			bio = bio_alloc(GFP_KERNEL, bio_max_segs(sg_cnt));
 #ifdef HAVE_BIO_BI_DISK
 			bio_set_dev(bio, req->ns->bdev);
 #else

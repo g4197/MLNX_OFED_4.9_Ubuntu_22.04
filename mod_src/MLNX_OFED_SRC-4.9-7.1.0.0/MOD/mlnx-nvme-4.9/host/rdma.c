@@ -160,14 +160,14 @@ static struct blk_mq_ops nvme_rdma_admin_mq_ops;
 #endif
 
 /* XXX: really should move to a generic header sooner or later.. */
-#ifndef HAVE_PUT_UNALIGNED_LE24
-static inline void put_unaligned_le24(u32 val, u8 *p)
-{
-	*p++ = val;
-	*p++ = val >> 8;
-	*p++ = val >> 16;
-}
-#endif
+// #ifndef HAVE_PUT_UNALIGNED_LE24
+// static inline void put_unaligned_le24(u32 val, u8 *p)
+// {
+// 	*p++ = val;
+// 	*p++ = val >> 8;
+// 	*p++ = val >> 16;
+// }
+// #endif
 
 static inline int nvme_rdma_queue_idx(struct nvme_rdma_queue *queue)
 {
@@ -2001,7 +2001,8 @@ unmap_qe:
 }
 
 #ifdef HAVE_BLK_MQ_OPS_POLL
-#ifdef HAVE_BLK_MQ_POLL_FN_1_ARG
+// #ifdef HAVE_BLK_MQ_POLL_FN_1_ARG
+#if 1
 static int nvme_rdma_poll(struct blk_mq_hw_ctx *hctx)
 #else
 static int nvme_rdma_poll(struct blk_mq_hw_ctx *hctx, unsigned int tag)
@@ -2009,7 +2010,8 @@ static int nvme_rdma_poll(struct blk_mq_hw_ctx *hctx, unsigned int tag)
 {
 	struct nvme_rdma_queue *queue = hctx->driver_data;
 
-#ifdef HAVE_BLK_MQ_POLL_FN_1_ARG
+// #ifdef HAVE_BLK_MQ_POLL_FN_1_ARG
+#if 1
 	return ib_process_cq_direct(queue->ib_cq, -1);
 #else
 	return ib_process_cq_direct(queue->ib_cq, tag);

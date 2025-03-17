@@ -2503,8 +2503,8 @@ static int SRP_QUEUECOMMAND(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
 		goto err;
 
 #ifdef HAVE_BLK_TAGS
-	WARN_ON_ONCE(scmnd->request->tag < 0);
-	tag = blk_mq_unique_tag(scmnd->request);
+	WARN_ON_ONCE(scsi_cmd_to_rq(scmnd)->tag < 0);
+	tag = blk_mq_unique_tag(scsi_cmd_to_rq(scmnd));
 	ch = &target->ch[blk_mq_unique_tag_to_hwq(tag)];
 	idx = blk_mq_unique_tag_to_tag(tag);
 	WARN_ONCE(idx >= target->req_ring_size, "%s: tag %#x: idx %d >= %d\n",
@@ -2566,7 +2566,7 @@ static int SRP_QUEUECOMMAND(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
 		 * to reduce queue depth temporarily.
 		 */
 		scmnd->result = len == -ENOMEM ?
-			DID_OK << 16 | QUEUE_FULL << 1 : DID_ERROR << 16;
+			DID_OK << 16 | SAM_STAT_TASK_SET_FULL << 1 : DID_ERROR << 16;
 		goto err_iu;
 	}
 
@@ -3213,7 +3213,7 @@ static int srp_abort(struct scsi_cmnd *scmnd)
 	if (!req)
 		return SUCCESS;
 #ifdef HAVE_BLK_TAGS
-	tag = blk_mq_unique_tag(scmnd->request);
+	tag = blk_mq_unique_tag(scsi_cmd_to_rq(scmnd));
 	ch_idx = blk_mq_unique_tag_to_hwq(tag);
 #else
 	tag = req->tag;

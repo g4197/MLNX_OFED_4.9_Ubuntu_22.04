@@ -1421,7 +1421,8 @@ static int nvme_poll_irqdisable(struct nvme_queue *nvmeq, unsigned int tag)
 }
 
 #ifdef HAVE_BLK_MQ_OPS_POLL
-#ifdef HAVE_BLK_MQ_POLL_FN_1_ARG
+// #ifdef HAVE_BLK_MQ_POLL_FN_1_ARG
+#if 1
 static int nvme_poll(struct blk_mq_hw_ctx *hctx)
 #else
 static int nvme_poll(struct blk_mq_hw_ctx *hctx, unsigned int tag)
@@ -1435,7 +1436,8 @@ static int nvme_poll(struct blk_mq_hw_ctx *hctx, unsigned int tag)
 		return 0;
 
 	spin_lock(&nvmeq->cq_poll_lock);
-#ifdef HAVE_BLK_MQ_POLL_FN_1_ARG
+// #ifdef HAVE_BLK_MQ_POLL_FN_1_ARG
+#if 1
 	found = nvme_process_cq(nvmeq, &start, &end, -1);
 #else
 	found = nvme_process_cq(nvmeq, &start, &end, tag);
@@ -1709,7 +1711,7 @@ static enum blk_eh_timer_return nvme_timeout(struct request *req, bool reserved)
 
 	abort_req->timeout = ADMIN_TIMEOUT;
 	abort_req->end_io_data = NULL;
-	blk_execute_rq_nowait(abort_req->q, NULL, abort_req, 0, abort_endio);
+	blk_execute_rq_nowait(NULL, abort_req, 0, abort_endio);
 
 	/*
 	 * The aborted req will be completed on receiving the abort req.
@@ -2770,7 +2772,7 @@ static int nvme_delete_queue(struct nvme_queue *nvmeq, u8 opcode)
 	req->end_io_data = nvmeq;
 
 	init_completion(&nvmeq->delete_done);
-	blk_execute_rq_nowait(q, NULL, req, false,
+	blk_execute_rq_nowait(NULL, req, false,
 			opcode == nvme_admin_delete_cq ?
 				nvme_del_cq_end : nvme_del_queue_end);
 	return 0;

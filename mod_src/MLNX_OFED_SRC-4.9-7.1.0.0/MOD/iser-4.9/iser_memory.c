@@ -37,7 +37,7 @@
 #include <linux/highmem.h>
 #include <linux/scatterlist.h>
 #include <linux/sizes.h>
-
+#include <linux/blk-mq.h>
 #include "iscsi_iser.h"
 static
 int iser_fast_reg_fmr(struct iscsi_iser_task *iser_task,
@@ -612,7 +612,7 @@ iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
 #ifdef HAVE_SCSI_CMND_PROT_FLAGS
 	domain->sig.dif.pi_interval = scsi_prot_interval(sc);
 #ifdef HAVE_T10_PI_REF_TAG
-	domain->sig.dif.ref_tag = t10_pi_ref_tag(sc->request);
+	domain->sig.dif.ref_tag = t10_pi_ref_tag(scsi_cmd_to_rq(sc));
 #else
 	domain->sig.dif.ref_tag = scsi_prot_ref_tag(sc);
 #endif

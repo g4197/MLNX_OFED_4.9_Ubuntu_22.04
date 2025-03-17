@@ -320,9 +320,9 @@ static blk_qc_t nvme_ns_head_make_request(struct request_queue *q,
 	srcu_idx = srcu_read_lock(&head->srcu);
 	ns = nvme_find_path(head);
 	if (likely(ns)) {
-		bio->bi_disk = ns->disk;
+		bio->bi_bdev->bd_disk = ns->disk;
 		bio->bi_opf |= REQ_NVME_MPATH;
-		trace_block_bio_remap(bio->bi_disk->queue, bio,
+		trace_block_bio_remap(bio,
 				      disk_devt(ns->head->disk),
 				      bio->bi_iter.bi_sector);
 #ifdef HAVE_SUBMIT_BIO_NOACCT
@@ -365,7 +365,7 @@ static void nvme_requeue_work(struct work_struct *work)
 		 * Reset disk to the mpath node and resubmit to select a new
 		 * path.
 		 */
-		bio->bi_disk = head->disk;
+		bio->bi_bdev->bd_disk = head->disk;
 #ifdef HAVE_SUBMIT_BIO_NOACCT
 		submit_bio_noacct(bio);
 #else
@@ -392,40 +392,42 @@ int nvme_mpath_alloc_disk(struct nvme_ctrl *ctrl, struct nvme_ns_head *head)
 	if (!(ctrl->subsys->cmic & (1 << 1)) || !multipath)
 		return 0;
 
-#ifdef HAVE_BLOCK_DEVICE_OPERATIONS_SUBMIT_BIO
-        q = blk_alloc_queue(ctrl->numa_node);
-#else
-#ifdef HAVE_BLK_QUEUE_MAKE_REQUEST
-#ifdef HAVE_BLK_ALLOC_QUEUE_NODE_3_ARGS
-	q = blk_alloc_queue_node(GFP_KERNEL, NUMA_NO_NODE, NULL);
-#else
-#ifdef HAVE_BLK_ALLOC_QUEUE_RH
-	q = blk_alloc_queue_rh(nvme_ns_head_make_request, ctrl->numa_node);
-#else
-	q = blk_alloc_queue_node(GFP_KERNEL, ctrl->numa_node);
-#endif
-#endif
-#else
-	q = blk_alloc_queue(nvme_ns_head_make_request, ctrl->numa_node);
-#endif
-#endif /* HAVE_BLOCK_DEVICE_OPERATIONS_SUBMIT_BIO */
-	if (!q)
-		goto out;
-	q->queuedata = head;
-#if defined(HAVE_BLK_QUEUE_MAKE_REQUEST) && !defined(HAVE_BLK_ALLOC_QUEUE_RH)
-	blk_queue_make_request(q, nvme_ns_head_make_request);
-#endif
-	blk_queue_flag_set(QUEUE_FLAG_NONROT, q);
-	/* set to a default value for 512 until disk is validated */
-	blk_queue_logical_block_size(q, 512);
-	blk_set_stacking_limits(&q->limits);
+	head->disk = blk_alloc_disk(ctrl->numa_node);
+// #ifdef HAVE_BLOCK_DEVICE_OPERATIONS_SUBMIT_BIO
+//         q = blk_alloc_queue(ctrl->numa_node);
+// #else
+// #ifdef HAVE_BLK_QUEUE_MAKE_REQUEST
+// #ifdef HAVE_BLK_ALLOC_QUEUE_NODE_3_ARGS
+// 	q = blk_alloc_queue_node(GFP_KERNEL, NUMA_NO_NODE, NULL);
+// #else
+// #ifdef HAVE_BLK_ALLOC_QUEUE_RH
+// 	q = blk_alloc_queue_rh(nvme_ns_head_make_request, ctrl->numa_node);
+// #else
+// 	q = blk_alloc_queue_node(GFP_KERNEL, ctrl->numa_node);
+// #endif
+// #endif
+// #else
+// 	q = blk_alloc_queue(nvme_ns_head_make_request, ctrl->numa_node);
+// #endif
+// #endif /* HAVE_BLOCK_DEVICE_OPERATIONS_SUBMIT_BIO */
+// 	if (!q)
+// 		goto out;
+// 	q->queuedata = head;
+// #if defined(HAVE_BLK_QUEUE_MAKE_REQUEST) && !defined(HAVE_BLK_ALLOC_QUEUE_RH)
+// 	blk_queue_make_request(q, nvme_ns_head_make_request);
+// #endif
+// 	blk_queue_flag_set(QUEUE_FLAG_NONROT, q);
+// 	/* set to a default value for 512 until disk is validated */
+// 	blk_queue_logical_block_size(q, 512);
+// 	blk_set_stacking_limits(&q->limits);
 
-	/* we need to propagate up the VMC settings */
-	if (ctrl->vwc & NVME_CTRL_VWC_PRESENT)
-		vwc = true;
-	blk_queue_write_cache(q, vwc, vwc);
+// 	/* we need to propagate up the VMC settings */
+// 	if (ctrl->vwc & NVME_CTRL_VWC_PRESENT)
+// 		vwc = true;
+// 	blk_queue_write_cache(q, vwc, vwc);
 
-	head->disk = alloc_disk(0);
+// 	head->disk = __alloc_disk_node(0, NUMA_NO_NODE, &__key);
+
 	if (!head->disk)
 		goto out_cleanup_queue;
 	head->disk->fops = &nvme_ns_head_ops;
@@ -452,7 +454,7 @@ static void nvme_mpath_set_live(struct nvme_ns *ns)
 		return;
 
 #ifdef HAVE_DEVICE_ADD_DISK_3_ARGS
-	if (!(head->disk->flags & GENHD_FL_UP))
+	// if (!(head->disk->flags & GENHD_FL_UP))
 		device_add_disk(&head->subsys->dev, head->disk,
 				nvme_ns_id_attr_groups);
 #else
@@ -723,7 +725,7 @@ void nvme_mpath_remove_disk(struct nvme_ns_head *head)
 	if (!head->disk)
 		return;
 #ifdef HAVE_DEVICE_ADD_DISK_3_ARGS
-	if (head->disk->flags & GENHD_FL_UP)
+	// if (head->disk->flags & GENHD_FL_UP)
 		del_gendisk(head->disk);
 #else
 	if (head->disk->flags & GENHD_FL_UP) {
@@ -732,7 +734,8 @@ void nvme_mpath_remove_disk(struct nvme_ns_head *head)
 		del_gendisk(head->disk);
 	}
 #endif
-	blk_set_queue_dying(head->disk->queue);
+	// blk_set_queue_dying(head->disk->queue);
+	blk_mark_disk_dead(head->disk);
 	/* make sure all pending bios are cleaned up */
 	kblockd_schedule_work(&head->requeue_work);
 	flush_work(&head->requeue_work);

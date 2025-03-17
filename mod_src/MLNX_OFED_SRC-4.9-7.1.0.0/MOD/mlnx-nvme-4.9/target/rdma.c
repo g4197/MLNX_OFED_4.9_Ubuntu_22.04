@@ -215,12 +215,12 @@ static int offload_buffer_size_set(const char *val,
 }
 
 /* XXX: really should move to a generic header sooner or later.. */
-#ifndef HAVE_PUT_UNALIGNED_LE24
-static inline u32 get_unaligned_le24(const u8 *p)
-{
-	return (u32)p[0] | (u32)p[1] << 8 | (u32)p[2] << 16;
-}
-#endif
+// #ifndef HAVE_PUT_UNALIGNED_LE24
+// static inline u32 get_unaligned_le24(const u8 *p)
+// {
+// 	return (u32)p[0] | (u32)p[1] << 8 | (u32)p[2] << 16;
+// }
+// #endif
 
 static inline bool nvmet_rdma_need_data_in(struct nvmet_rdma_rsp *rsp)
 {

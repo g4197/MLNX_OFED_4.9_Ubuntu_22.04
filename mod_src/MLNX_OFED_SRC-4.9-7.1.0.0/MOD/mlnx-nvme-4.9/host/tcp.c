@@ -1267,9 +1267,10 @@ static int nvme_tcp_alloc_queue(struct nvme_ctrl *nctrl,
 	}
 
 	/* Single syn retry */
-	opt = 1;
-	ret = kernel_setsockopt(queue->sock, IPPROTO_TCP, TCP_SYNCNT,
-			(char *)&opt, sizeof(opt));
+	tcp_sock_set_syncnt(queue->sock->sk, 1);
+	// opt = 1;
+	// ret = kernel_setsockopt(queue->sock, IPPROTO_TCP, TCP_SYNCNT,
+	// 		(char *)&opt, sizeof(opt));
 	if (ret) {
 		dev_err(nctrl->device,
 			"failed to set TCP_SYNCNT sock opt %d\n", ret);
@@ -1277,9 +1278,10 @@ static int nvme_tcp_alloc_queue(struct nvme_ctrl *nctrl,
 	}
 
 	/* Set TCP no delay */
-	opt = 1;
-	ret = kernel_setsockopt(queue->sock, IPPROTO_TCP,
-			TCP_NODELAY, (char *)&opt, sizeof(opt));
+	tcp_sock_set_nodelay(queue->sock->sk);
+	// opt = 1;
+	// ret = kernel_setsockopt(queue->sock, IPPROTO_TCP,
+	// 		TCP_NODELAY, (char *)&opt, sizeof(opt));
 	if (ret) {
 		dev_err(nctrl->device,
 			"failed to set TCP_NODELAY sock opt %d\n", ret);
@@ -1291,24 +1293,26 @@ static int nvme_tcp_alloc_queue(struct nvme_ctrl *nctrl,
 	 * close. This is done to prevent stale data from being sent should
 	 * the network connection be restored before TCP times out.
 	 */
-	ret = kernel_setsockopt(queue->sock, SOL_SOCKET, SO_LINGER,
-			(char *)&sol, sizeof(sol));
-	if (ret) {
-		dev_err(nctrl->device,
-			"failed to set SO_LINGER sock opt %d\n", ret);
-		goto err_sock;
-	}
+	// ret = kernel_setsockopt(queue->sock, SOL_SOCKET, SO_LINGER,
+	// 		(char *)&sol, sizeof(sol));
+	// if (ret) {
+	// 	dev_err(nctrl->device,
+	// 		"failed to set SO_LINGER sock opt %d\n", ret);
+	// 	goto err_sock;
+	// }
+	sock_no_linger(queue->sock->sk);
 
 	/* Set socket type of service */
 	if (nctrl->opts->tos >= 0) {
-		opt = nctrl->opts->tos;
-		ret = kernel_setsockopt(queue->sock, SOL_IP, IP_TOS,
-				(char *)&opt, sizeof(opt));
-		if (ret) {
-			dev_err(nctrl->device,
-				"failed to set IP_TOS sock opt %d\n", ret);
-			goto err_sock;
-		}
+		ip_sock_set_tos(queue->sock->sk, nctrl->opts->tos);
+		// opt = nctrl->opts->tos;
+		// ret = kernel_setsockopt(queue->sock, SOL_IP, IP_TOS,
+		// 		(char *)&opt, sizeof(opt));
+		// if (ret) {
+		// 	dev_err(nctrl->device,
+		// 		"failed to set IP_TOS sock opt %d\n", ret);
+		// 	goto err_sock;
+		// }
 	}
 
 	queue->sock->sk->sk_allocation = GFP_ATOMIC;

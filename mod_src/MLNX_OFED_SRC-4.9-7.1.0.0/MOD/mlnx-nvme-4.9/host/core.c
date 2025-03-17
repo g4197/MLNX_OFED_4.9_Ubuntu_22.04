@@ -118,7 +118,8 @@ static void nvme_set_queue_dying(struct nvme_ns *ns)
 #ifdef HAVE_REVALIDATE_DISK
 	revalidate_disk(ns->disk);
 #endif
-	blk_set_queue_dying(ns->queue);
+	// blk_set_queue_dying(ns->queue);
+	blk_mark_disk_dead(ns->disk);
 	/* Forcibly unquiesce queues to avoid blocking dispatch */
 #ifdef HAVE_BLK_MQ_UNQUIESCE_QUEUE
 	blk_mq_unquiesce_queue(ns->queue);
@@ -978,7 +979,7 @@ static void nvme_execute_rq_polled(struct request_queue *q,
 
 	rq->cmd_flags |= REQ_HIPRI;
 	rq->end_io_data = &wait;
-	blk_execute_rq_nowait(q, bd_disk, rq, at_head, nvme_end_sync_rq);
+	blk_execute_rq_nowait(bd_disk, rq, at_head, nvme_end_sync_rq);
 
 	while (!completion_done(&wait)) {
 		blk_poll(q, request_to_qc_t(rq->mq_hctx, rq), true);
@@ -1027,7 +1028,7 @@ int __nvme_submit_sync_cmd(struct request_queue *q, struct nvme_command *cmd,
 		nvme_execute_rq_polled(req->q, NULL, req, at_head);
 	else
 #endif
-		blk_execute_rq(req->q, NULL, req, at_head);
+		blk_execute_rq(NULL, req, at_head);
 	if (result)
 		*result = nvme_req(req)->result;
 	if (nvme_req(req)->flags & NVME_REQ_CANCELLED)
@@ -1123,7 +1124,7 @@ static int nvme_submit_user_cmd(struct request_queue *q,
 		bio->bi_disk = disk;
 #else
 		if (disk) {
-			bio->bi_bdev = bdget_disk(disk, 0);
+			bio->bi_bdev = disk->part0;
 			if (!bio->bi_bdev) {
 				ret = -ENODEV;
 				goto out_unmap;
@@ -1143,7 +1144,7 @@ static int nvme_submit_user_cmd(struct request_queue *q,
 		}
 	}
 
-	blk_execute_rq(req->q, disk, req, 0);
+	blk_execute_rq(disk, req, 0);
 	if (nvme_req(req)->flags & NVME_REQ_CANCELLED)
 		ret = -EINTR;
 	else
@@ -1161,8 +1162,6 @@ static int nvme_submit_user_cmd(struct request_queue *q,
 		blk_rq_unmap_user(bio);
 #else
 	if (bio) {
-		if (disk && bio->bi_bdev)
-			bdput(bio->bi_bdev);
 		blk_rq_unmap_user(bio);
 	}
 #endif
@@ -1213,7 +1212,7 @@ static int nvme_keep_alive(struct nvme_ctrl *ctrl)
 	rq->timeout = ctrl->kato * HZ;
 	rq->end_io_data = ctrl;
 
-	blk_execute_rq_nowait(rq->q, NULL, rq, 0, nvme_keep_alive_end_io);
+	blk_execute_rq_nowait(NULL, rq, 0, nvme_keep_alive_end_io);
 
 	return 0;
 }
@@ -2017,7 +2016,7 @@ static void __nvme_revalidate_disk(struct gendisk *disk, struct nvme_id_ns *id)
 #ifdef CONFIG_NVME_MULTIPATH
 	if (ns->head->disk) {
 		nvme_update_disk_info(ns->head->disk, ns, id);
-		blk_queue_stack_limits(ns->head->disk->queue, ns->queue);
+		blk_stack_limits(&ns->head->disk->queue->limits, &ns->queue->limits, 0);
 #ifdef HAVE_REVALIDATE_DISK
 		revalidate_disk(ns->head->disk);
 #endif
@@ -2199,7 +2198,7 @@ static const struct block_device_operations nvme_fops = {
 	.open		= nvme_open,
 	.release	= nvme_release,
 	.getgeo		= nvme_getgeo,
-	.revalidate_disk= nvme_revalidate_disk,
+	// .revalidate_disk= nvme_revalidate_disk,
 #ifdef HAVE_PR_H
 	.pr_ops		= &nvme_pr_ops,
 #endif
@@ -3640,7 +3639,7 @@ out_unlock:
 	return ret;
 }
 
-static int ns_cmp(void *priv, struct list_head *a, struct list_head *b)
+static int ns_cmp(void *priv, const struct list_head *a, const struct list_head *b)
 {
 	struct nvme_ns *nsa = container_of(a, struct nvme_ns, list);
 	struct nvme_ns *nsb = container_of(b, struct nvme_ns, list);
@@ -3697,6 +3696,8 @@ static int nvme_setup_streams_ns(struct nvme_ctrl *ctrl, struct nvme_ns *ns)
 
 static int nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
 {
+	static struct lock_class_key __key;
+	
 	struct nvme_ns *ns;
 	struct gendisk *disk;
 	struct nvme_id_ns *id;
@@ -3747,7 +3748,8 @@ static int nvme_alloc_ns(struct nvme_ctrl *ctrl, unsigned nsid)
 #endif
 	nvme_set_disk_name(disk_name, ns, ctrl, &flags);
 
-	disk = alloc_disk_node(0, node);
+	
+	disk = __alloc_disk_node(0, node, &__key);
 	if (!disk) {
 		ret = -ENOMEM;
 		goto out_unlink_ns;
@@ -3828,7 +3830,7 @@ static void nvme_ns_remove(struct nvme_ns *ns)
 	nvme_mpath_clear_current_path(ns);
 	synchronize_srcu(&ns->head->srcu); /* wait for concurrent submissions */
 
-	if (ns->disk && ns->disk->flags & GENHD_FL_UP) {
+	// if (ns->disk && ns->disk->flags & GENHD_FL_UP) {
 #ifndef HAVE_DEVICE_ADD_DISK_3_ARGS
 		sysfs_remove_group(&disk_to_dev(ns->disk)->kobj,
 				   &nvme_ns_id_attr_group);
@@ -3837,7 +3839,7 @@ static void nvme_ns_remove(struct nvme_ns *ns)
 		blk_cleanup_queue(ns->queue);
 		if (blk_get_integrity(ns->disk))
 			blk_integrity_unregister(ns->disk);
-	}
+	// }
 
 	down_write(&ns->ctrl->namespaces_rwsem);
 	list_del_init(&ns->list);

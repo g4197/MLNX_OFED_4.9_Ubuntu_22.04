@@ -1445,19 +1445,21 @@ static int nvmet_tcp_set_queue_sock(struct nvmet_tcp_queue *queue)
 	 * close. This is done to prevent stale data from being sent should
 	 * the network connection be restored before TCP times out.
 	 */
-	ret = kernel_setsockopt(sock, SOL_SOCKET, SO_LINGER,
-			(char *)&sol, sizeof(sol));
-	if (ret)
-		return ret;
+	sock_no_linger(sock->sk);
+	// ret = kernel_setsockopt(sock, SOL_SOCKET, SO_LINGER,
+	// 		(char *)&sol, sizeof(sol));
+	// if (ret)
+	// 	return ret;
 
 	/* Set socket type of service */
 	if (inet->rcv_tos > 0) {
-		int tos = inet->rcv_tos;
+		ip_sock_set_tos(sock->sk, inet->rcv_tos);
+		// int tos = inet->rcv_tos;
 
-		ret = kernel_setsockopt(sock, SOL_IP, IP_TOS,
-				(char *)&tos, sizeof(tos));
-		if (ret)
-			return ret;
+		// ret = kernel_setsockopt(sock, SOL_IP, IP_TOS,
+		// 		(char *)&tos, sizeof(tos));
+		// if (ret)
+		// 	return ret;
 	}
 
 	write_lock_bh(&sock->sk->sk_callback_lock);
@@ -1624,20 +1626,22 @@ static int nvmet_tcp_add_port(struct nvmet_port *nport)
 	port->data_ready = port->sock->sk->sk_data_ready;
 	port->sock->sk->sk_data_ready = nvmet_tcp_listen_data_ready;
 
-	opt = 1;
-	ret = kernel_setsockopt(port->sock, IPPROTO_TCP,
-			TCP_NODELAY, (char *)&opt, sizeof(opt));
-	if (ret) {
-		pr_err("failed to set TCP_NODELAY sock opt %d\n", ret);
-		goto err_sock;
-	}
+	sock_set_reuseaddr(port->sock->sk);
+	tcp_sock_set_nodelay(port->sock->sk);
+	// opt = 1;
+	// ret = kernel_setsockopt(port->sock, IPPROTO_TCP,
+	// 		TCP_NODELAY, (char *)&opt, sizeof(opt));
+	// if (ret) {
+	// 	pr_err("failed to set TCP_NODELAY sock opt %d\n", ret);
+	// 	goto err_sock;
+	// }
 
-	ret = kernel_setsockopt(port->sock, SOL_SOCKET, SO_REUSEADDR,
-			(char *)&opt, sizeof(opt));
-	if (ret) {
-		pr_err("failed to set SO_REUSEADDR sock opt %d\n", ret);
-		goto err_sock;
-	}
+	// ret = kernel_setsockopt(port->sock, SOL_SOCKET, SO_REUSEADDR,
+	// 		(char *)&opt, sizeof(opt));
+	// if (ret) {
+	// 	pr_err("failed to set SO_REUSEADDR sock opt %d\n", ret);
+	// 	goto err_sock;
+	// }
 
 	ret = kernel_bind(port->sock, (struct sockaddr *)&port->addr,
 			sizeof(port->addr));
