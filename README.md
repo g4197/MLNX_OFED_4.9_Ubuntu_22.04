@@ -1,81 +1,87 @@
-# MLNX_OFED_4.9_Ubuntu_22.04
+# MLNX_OFED 4.9 for Ubuntu 22.04 (Kernel 5.15)
 
-This is a migrated version of Mellanox OFED 4.9-7.1.0.0 (https://network.nvidia.com/products/infiniband-drivers/linux/mlnx_ofed/) for Ubuntu 22.04 with Linux kernel 5.15.0.
+This repository provides a migrated version of Mellanox OFED 4.9-7.1.0.0 (originally available at https://network.nvidia.com/products/infiniband-drivers/linux/mlnx_ofed/) adapted for Ubuntu 22.04 with the Linux 5.15.0 kernel series.
 
 # Quick start
 
-1. Ensure that you are running Ubuntu 22.04 with Linux kernel 5.15.0-xxx (**old or new kernel versions are not compatible** due to intrusive modifications of DKMS code).
+0. **Clone this repository.**
+
+1. Ensure your system is running Ubuntu 22.04 with a Linux kernel from the 5.15.0-xxx series.  **Other kernel versions (older or newer) are incompatible** due to significant modifications to the DKMS (Dynamic Kernel Module Support) code.  Verify with the following commands:
 
 ```bash
-lsb_release -sr # 22.04
-uname -r # 5.15.0-xxx-generic
+lsb_release -sr  # Expected output: 22.04
+uname -r        # Expected output: 5.15.0-xxx-generic
 ```
 
-2. Install gcc-9 and g++-9, which are used for compiling.
+2. Install GCC-9 and G++-9, which are required for compilation:
 
 ```bash
 apt install gcc-9 g++-9
 ```
 
-3. Run `./mlnxofedinstall`.
+3. Navigate to the driver directory and run the `mlnxofedinstall` script:
 
 ```bash
 cd MLNX_OFED_LINUX-4.9-7.1.0.0-ubuntu22.04-x86_64
 ./mlnxofedinstall
 ```
 
-# Evaluated Systems
+# Tested Systems and Features
 
-Testbed: Two machines with ConnectX-6 NICs, Ubuntu 22.04 with Linux kernel 5.15.0-134-generic.
+The following configurations and applications have been successfully tested:
 
-* `ib_write_bw`.
+* **Testbed:** Two machines equipped with ConnectX-6 NICs, running Ubuntu 22.04 with Linux kernel 5.15.0-134-generic.
 
-* [Rowan](https://github.com/thustorage/rowan), which uses **shared receive queue + multi-packet receive queue** (features not in OFED 5+) for shared log.
+* **`ib_write_bw`:**  The InfiniBand write bandwidth test utility.
 
-* [Deft](https://github.com/thustorage/deft), a tree index on disaggregated memory.
+* **[Rowan](https://github.com/thustorage/rowan):** A shared log implementation utilizing **shared receive queues and multi-packet receive queues** (features not present in OFED 5+).
 
-**Not tested:**
+* **[Deft](https://github.com/thustorage/deft):** A tree index designed for disaggregated memory systems.
 
-* mlnx_nvme functionality.
+**Untested Features:**
 
-* OpenMPI, UCX, and other high-level interfaces.
+* `mlnx_nvme` functionality.
 
-Feedback is welcome if you have tested other features in your environment.
+* High-level communication libraries and frameworks such as OpenMPI, UCX, etc.
 
-# Modified Source Code
+We encourage users to provide feedback if they have tested other features in their environments.
 
-See `./mod_src` for details. It contains the modified OFED source code (in `MOD` folder).
+# Source Code Modifications
 
-Generally, I only modify code that fail to compile in Linux 5.15 (because of changed kernel interfaces).
+Detailed information regarding the source code modifications can be found in the `./mod_src` directory. 
+This directory contains the modified OFED source code within the `MOD` folder.
 
-* For other modules except for OFED kernel, the modifications are shown in commit `976455b`.
+The modifications primarily address compilation failures encountered with the Linux 5.15 kernel due to changes in kernel interfaces.
 
-* For OFED kernel, I directly apply the backports and then make modifications, the modifications are in commit `f76378`.
+* **Non-Kernel Modules:** Modifications to modules outside of the OFED kernel are detailed in commit `976455b`.
 
-* Misc: UCX fails to compile. But the package in OFED_LINUX could be installed.
+* **OFED Kernel Modules:**  For the OFED kernel, backports were applied first, followed by necessary modifications. These changes are detailed in commit `f76378`.
 
-# Supporting Other Kernel Versions
+* **Note:** UCX compilation failed.  However, the pre-built package within `MLNX_OFED_LINUX` can still be installed.
 
-## Modify Code (Especially DKMS)
+# Adapting to Other Kernel Versions
 
-Typically, you should modify only the DKMS modules in the `MOD` folder. If other modules fail to compile, modify their source code by `tar -zxvf` and copy them to `MOD` folder.
+## Code Modifications (Primarily DKMS)
+
+To support other kernel versions, you will likely need to modify the DKMS modules located in the `MOD` folder.
+If other modules fail to compile, extract their source code using `tar -zxvf` and place them in the `MOD` folder for modification.
 
 * When debugging, you could directly compile by executing `make` (it uses both `makefile` and `Makefile`, CFLAGS are passed in `makefile`) in the source folder. For `ofed_kernel`, refer to `ofed_scripts/pre_build.sh` (`./configure --with-njobs=${nprocs}; make -j`).
 
-* Or, use `dpkg -i` to install the compiled software one-by-one, see `make.log` (path shown in ERROR message) for details.
+* Alternatively, use `dpkg -i` to install compiled packages individually. Refer to the `make.log` file (the path is indicated in error messages) for error details.
 
-* When the compile could pass, use `tar -zcvf` to generate `.tgz`, replace the corresponding ones in `SOURCES`.
+* Once compilation is successful, use `tar -zcvf` to create `.tgz` archives. Replace the corresponding archives in the `SOURCES` directory.
 
-* Delete the corresponding .deb in `DEBS`, rebuild them using `./install.pl`.
+* Delete the corresponding `.deb` files in `DEBS`, rebuild and reinstall them using `./install.pl`.
 
-Remember to modify `install.pl` to change the version of dependencies (e.g., `libssl3` vs `libssl1.1`).
+Remember to update the dependency versions in `install.pl` as needed (e.g., `libssl3` versus `libssl1.1`).
 
 ## Install
 
-When `install.pl` successes in installing all the packages:
+After successfully building all packages using `install.pl`:
 
-* Replace the DEBS in `MLNX_OFED_LINUX` with corresponding ones in `mod_src/DEBS`
+* Replace the `.deb` files in the `MLNX_OFED_LINUX` directory with the newly built ones located in `mod_src/DEBS`.
 
-* Change `distro` to your distribution in `MLNX_OFED_LINUX`.
+* Modify the `distro` variable in the `MLNX_OFED_LINUX` directory to reflect your target distribution.
 
-* Install the OFED normally using `./mlnxofedinstall`.
+* Proceed with the standard OFED installation using `./mlnxofedinstall`.
