@@ -34,7 +34,7 @@ The following configurations and applications have been successfully tested:
 
 * **`ib_write_bw`:**  The InfiniBand write bandwidth test utility.
 
-* **[Rowan](https://github.com/thustorage/rowan):** A shared log implementation utilizing **shared receive queues and multi-packet receive queues** (features not present in OFED 5+).
+* **[Rowan](https://github.com/thustorage/rowan):** A shared log implementation utilizing **multi-packet receive queues** (features not present in OFED 5+).
 
 * **[Deft](https://github.com/thustorage/deft):** A tree index designed for disaggregated memory systems.
 
