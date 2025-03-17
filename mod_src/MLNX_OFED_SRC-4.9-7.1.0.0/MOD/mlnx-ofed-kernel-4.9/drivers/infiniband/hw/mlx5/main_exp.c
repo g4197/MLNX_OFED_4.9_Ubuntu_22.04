@@ -2546,7 +2546,7 @@ struct ib_dm *mlx5_ib_exp_alloc_dm(struct ib_device *ibdev,
 	dm->size = act_size;
 
 	if (context) {
-		down_read(&current->mm->mmap_sem);
+		mmap_read_lock(current->mm);
 		vma = find_vma(current->mm, uaddr & PAGE_MASK);
 		if (!vma || (vma->vm_end - vma->vm_start < map_size)) {
 			ret = -EINVAL;
@@ -2568,7 +2568,7 @@ struct ib_dm *mlx5_ib_exp_alloc_dm(struct ib_device *ibdev,
 			goto err_vma;
 		}
 
-		up_read(&current->mm->mmap_sem);
+		mmap_read_unlock(current->mm);
 	} else {
 		dm->dm_base_addr = ioremap(memic_addr, length);
 		if (!dm->dm_base_addr) {
@@ -2583,7 +2583,7 @@ struct ib_dm *mlx5_ib_exp_alloc_dm(struct ib_device *ibdev,
 	return &dm->ibdm;
 
 err_vma:
-	up_read(&current->mm->mmap_sem);
+	mmap_read_unlock(current->mm);
 
 err_map:
 	mlx5_cmd_dealloc_memic(dm_db, memic_addr, act_size);

@@ -937,11 +937,11 @@ static int dr_dump_proc_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct file_operations mlx5_crdump_fops = {
-	.owner = THIS_MODULE,
-	.read = dr_dump_proc_read,
-	.open = dr_dump_proc_open,
-	.release = dr_dump_proc_release
+static const struct proc_ops mlx5_crdump_fops = {
+	// .owner = THIS_MODULE,
+	.proc_read = dr_dump_proc_read,
+	.proc_open = dr_dump_proc_open,
+	.proc_release = dr_dump_proc_release
 };
 
 int mlx5dr_dbg_init_dump(struct mlx5dr_domain *dmn)

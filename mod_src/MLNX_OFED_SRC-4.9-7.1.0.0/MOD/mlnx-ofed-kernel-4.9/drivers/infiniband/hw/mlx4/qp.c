@@ -3728,17 +3728,17 @@ static int _mlx4_ib_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
 {
 	struct mlx4_ib_qp *qp = to_mqp(ibqp);
 	void *wqe;
-	struct mlx4_wqe_ctrl_seg *uninitialized_var(ctrl);
+	struct mlx4_wqe_ctrl_seg *ctrl = NULL;
 	struct mlx4_wqe_data_seg *dseg;
 	unsigned long flags;
 	int nreq;
 	int err = 0;
 	unsigned ind;
-	int uninitialized_var(size);
-	unsigned uninitialized_var(seglen);
+	int size = 0;
+	unsigned seglen = 0;
 	__be32 dummy;
 	__be32 *lso_wqe;
-	__be32 uninitialized_var(lso_hdr_sz);
+	__be32 lso_hdr_sz = 0;
 	__be32 blh;
 	int i;
 	int inl = 0;

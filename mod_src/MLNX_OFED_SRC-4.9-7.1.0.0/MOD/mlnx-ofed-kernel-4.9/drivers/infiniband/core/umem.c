@@ -464,7 +464,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
 	new_pinned = atomic64_add_return(npages, &mm->pinned_vm);
 	if (new_pinned > lock_limit && !capable(CAP_IPC_LOCK)) {
 #else
-	down_write(&mm->mmap_sem);
+	mmap_write_lock(mm);
 #ifdef HAVE_PINNED_VM
 	if (check_add_overflow(mm->pinned_vm, npages, &new_pinned) ||
 	    (new_pinned > lock_limit && !capable(CAP_IPC_LOCK))) {
@@ -477,7 +477,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
 #ifdef HAVE_ATOMIC_PINNED_VM
 		atomic64_sub(npages, &mm->pinned_vm);
 #else
-		up_write(&mm->mmap_sem);
+		mmap_write_unlock(mm);
 #ifdef HAVE_PINNED_VM
 		pr_debug("%s: requested to lock(%lu) while limit is(%lu)\n",
 		       __func__, new_pinned, lock_limit);
@@ -493,7 +493,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
 #ifdef HAVE_PINNED_VM
 	mm->pinned_vm = new_pinned;
 #endif /* HAVE_PINNED_VM */
-	up_write(&mm->mmap_sem);
+	mmap_write_unlock(mm);
 #endif /* HAVE_ATOMIC_PINNED_VM */
 	cur_base = addr & PAGE_MASK;
 
@@ -521,7 +521,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
 		if (ret < 0)
 			goto umem_release;
 #else
-		down_read(&mm->mmap_sem);
+		mmap_read_lock(mm);
 #ifdef HAVE_FOLL_LONGTERM
 		ret = get_user_pages(cur_base,
 				     min_t(unsigned long, npages,
@@ -565,7 +565,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
 				     PAGE_SIZE / sizeof(struct page *)));
 #endif
 #ifndef HAVE_UNPIN_USER_PAGES_DIRTY_LOCK_EXPORTED
-			up_read(&mm->mmap_sem);
+			mmap_read_unlock(mm);
 #endif
 			goto umem_release;
 		}
@@ -587,7 +587,7 @@ struct ib_umem *ib_umem_get(struct ib_udata *udata, unsigned long addr,
 		}
 #endif
 #ifndef HAVE_UNPIN_USER_PAGES_DIRTY_LOCK_EXPORTED
-		up_read(&mm->mmap_sem);
+		mmap_read_unlock(mm);
 #endif
 	}
 
@@ -627,13 +627,13 @@ vma:
 #ifdef HAVE_ATOMIC_PINNED_VM
 	atomic64_sub(ib_umem_num_pages(umem), &mm->pinned_vm);
 #else
-	down_write(&mm->mmap_sem);
+	mmap_write_lock(mm);
 #ifdef HAVE_PINNED_VM
 	mm->pinned_vm -= ib_umem_num_pages(umem);
 #else
 	mm->locked_vm -= ib_umem_num_pages(umem);
 #endif /* HAVE_PINNED_VM */
-	up_write(&mm->mmap_sem);
+	mmap_write_unlock(mm);
 #endif /* HAVE_ATOMIC_PINNED_VM */
 out:
 #if !defined(HAVE_FOLL_LONGTERM) && !defined(HAVE_GET_USER_PAGES_LONGTERM)
@@ -698,13 +698,13 @@ void ib_umem_release(struct ib_umem *umem)
 #ifdef HAVE_ATOMIC_PINNED_VM
 	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
 #else
-	down_write(&umem->owning_mm->mmap_sem);
+	mmap_write_lock(&umem->owning_mm);
 #ifdef HAVE_PINNED_VM
 	umem->owning_mm->pinned_vm -= ib_umem_num_pages(umem);
 #else
 	umem->owning_mm->locked_vm -= ib_umem_num_pages(umem);
 #endif /* HAVE_PINNED_VM */
-	up_write(&umem->owning_mm->mmap_sem);
+	mmap_write_unlock(umem->owning_mm);
 #endif /*HAVE_ATOMIC_PINNED_VM*/
 
 	__ib_umem_release_tail(umem);

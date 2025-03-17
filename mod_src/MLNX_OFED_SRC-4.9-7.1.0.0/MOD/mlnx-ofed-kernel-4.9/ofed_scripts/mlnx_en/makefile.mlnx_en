@@ -21,12 +21,7 @@ export MAKE
 export CREL=$(shell cat $(CWD)/compat_version)
 export CREL_PRE:=.compat_autoconf_
 export CREL_CHECK:=$(CREL_PRE)$(CREL)
-CFLAGS += \
-	-DCOMPAT_BASE="\"$(shell cat compat_base)\"" \
-	-DCOMPAT_BASE_TREE="\"$(shell cat compat_base_tree)\"" \
-	-DCOMPAT_BASE_TREE_VERSION="\"$(shell cat compat_base_tree_version)\"" \
-	-DCOMPAT_PROJECT="\"Compat-mlnx-ofed\"" \
-	-DCOMPAT_VERSION="\"$(shell cat compat_version)\"" \
+CFLAGS += -DCOMPAT_BASE="\"$(shell cat compat_base)\"" -DCOMPAT_BASE_TREE="\"$(shell cat compat_base_tree)\"" -DCOMPAT_BASE_TREE_VERSION="\"$(shell cat compat_base_tree_version)\"" -DCOMPAT_PROJECT="\"Compat-mlnx-ofed\"" -DCOMPAT_VERSION="\"$(shell cat compat_version)\"" 
 
 DEPMOD  = /sbin/depmod
 INSTALL_MOD_DIR ?= $(shell ( test -f /etc/SuSE-release && echo updates ) || ( test -f /etc/SUSE-brand && echo updates ) || ( echo extra/mellanox-mlnx-en ) )
@@ -163,31 +158,7 @@ kernel: $(COMPAT_CONFIG) $(COMPAT_AUTOCONF)
 		CONFIG_MLXFW=$(CONFIG_MLXFW) \
 		CONFIG_DTRACE= \
 		CONFIG_CTF= \
-		LINUXINCLUDE=' \
-		$(CFLAGS) \
-		-include $(autoconf_h) \
-		$(KCONFIG_H) \
-		-include $(CWD)/include/linux/compat-2.6.h \
-		$(BACKPORT_INCLUDES) \
-		$(KERNEL_MEMTRACK_CFLAGS) \
-		$(SYSTUNE_INCLUDE) \
-		$(MLNX_EN_EXTRA_CFLAGS) \
-		-I$(CWD)/include \
-		-I$(CWD)/include/uapi \
-		$$(if $$(CONFIG_XEN),-D__XEN_INTERFACE_VERSION__=$$(CONFIG_XEN_INTERFACE_VERSION)) \
-		$$(if $$(CONFIG_XEN),-I$$(srctree)/arch/x86/include/mach-xen) \
-		-I$$(srctree)/arch/$$(SRCARCH)/include \
-		-Iarch/$$(SRCARCH)/include/generated \
-		-Iinclude \
-		-I$$(srctree)/arch/$$(SRCARCH)/include/uapi \
-		-Iarch/$$(SRCARCH)/include/generated/uapi \
-		-I$$(srctree)/include \
-		-I$$(srctree)/include/uapi \
-		-Iinclude/generated/uapi \
-		$$(if $$(KBUILD_SRC),-Iinclude2 -I$$(srctree)/include) \
-		-I$$(srctree)/arch/$$(SRCARCH)/include \
-		-Iarch/$$(SRCARCH)/include/generated \
-		' \
+		LINUXINCLUDE=' $(CFLAGS) -include $(autoconf_h) $(KCONFIG_H) -include $(CWD)/include/linux/compat-2.6.h $(BACKPORT_INCLUDES) $(KERNEL_MEMTRACK_CFLAGS) $(SYSTUNE_INCLUDE) $(MLNX_EN_EXTRA_CFLAGS) -I$(CWD)/include -I$(CWD)/include/uapi $$(if $$(CONFIG_XEN),-D__XEN_INTERFACE_VERSION__=$$(CONFIG_XEN_INTERFACE_VERSION)) $$(if $$(CONFIG_XEN),-I$$(srctree)/arch/x86/include/mach-xen) -I$$(srctree)/arch/$$(SRCARCH)/include -Iarch/$$(SRCARCH)/include/generated -Iinclude -I$$(srctree)/arch/$$(SRCARCH)/include/uapi -Iarch/$$(SRCARCH)/include/generated/uapi -I$$(srctree)/include -I$$(srctree)/include/uapi -Iinclude/generated/uapi $$(if $$(KBUILD_SRC),-Iinclude2 -I$$(srctree)/include) -I$$(srctree)/arch/$$(SRCARCH)/include -Iarch/$$(SRCARCH)/include/generated ' \
 		modules
 
 

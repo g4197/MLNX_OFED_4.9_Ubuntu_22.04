@@ -571,15 +571,15 @@ int ib_umem_odp_get(struct ib_umem_odp *umem_odp, int access)
 		struct vm_area_struct *vma;
 		struct hstate *h;
 
-		down_read(&mm->mmap_sem);
+		mmap_read_lock(mm);
 		vma = find_vma(mm, ib_umem_start(umem));
 		if (!vma || !is_vm_hugetlb_page(vma)) {
-			up_read(&mm->mmap_sem);
+			mmap_read_unlock(mm);
 			return -EINVAL;
 		}
 		h = hstate_vma(vma);
 		umem->page_shift = huge_page_shift(h);
-		up_read(&mm->mmap_sem);
+		mmap_read_unlock(mm);
 #if !defined(HAVE_FOLL_LONGTERM) && !defined(HAVE_GET_USER_PAGES_LONGTERM)
 		umem->hugetlb = 1;
 	} else {
@@ -816,7 +816,7 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
 				(bcnt + BIT(page_shift) - 1) >> page_shift,
 				PAGE_SIZE / sizeof(struct page *));
 
-		down_read(&owning_mm->mmap_sem);
+		mmap_read_lock(owning_mm);
 		/*
 		 * Note: this might result in redundent page getting. We can
 		 * avoid this by checking dma_list to be 0 before calling
@@ -834,20 +834,20 @@ int ib_umem_odp_map_dma_pages(struct ib_umem_odp *umem_odp, u64 user_virt,
 				flags, local_page_list, NULL);
 #endif
 #else
-				access_mask & ODP_WRITE_ALLOWED_BIT, 0,
+				access_mask & ODP_WRITE_ALLOWED_BIT,
 				local_page_list, NULL);
 #endif
 #else
-		npages = get_user_pages(owning_process, owning_mm,
+		npages = get_user_pages(
 				user_virt, gup_num_pages,
 #ifdef HAVE_GET_USER_PAGES_7_PARAMS
 				flags, local_page_list, NULL);
 #else
 				access_mask & ODP_WRITE_ALLOWED_BIT,
-				0, local_page_list, NULL);
+				local_page_list, NULL);
 #endif
 #endif
-		up_read(&owning_mm->mmap_sem);
+		mmap_read_unlock(owning_mm);
 
 		if (npages < 0) {
 			if (npages != -EAGAIN)

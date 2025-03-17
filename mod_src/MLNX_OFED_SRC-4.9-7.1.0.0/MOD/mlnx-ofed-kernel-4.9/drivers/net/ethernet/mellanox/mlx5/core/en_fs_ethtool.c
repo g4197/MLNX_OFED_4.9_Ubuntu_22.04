@@ -29,7 +29,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
+#include <linux/ethtool.h>
 #include <linux/mlx5/fs.h>
 #include "en.h"
 #include "en_accel/ipsec_rxtx.h"

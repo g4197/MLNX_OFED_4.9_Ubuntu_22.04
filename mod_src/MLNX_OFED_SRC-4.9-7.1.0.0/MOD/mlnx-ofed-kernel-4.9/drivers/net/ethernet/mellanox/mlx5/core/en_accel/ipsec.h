@@ -35,7 +35,7 @@
 #define __MLX5E_IPSEC_H__
 
 #ifdef CONFIG_MLX5_EN_IPSEC
-
+#include <linux/ethtool.h>
 #include <linux/mlx5/device.h>
 #include <net/xfrm.h>
 #include <linux/idr.h>

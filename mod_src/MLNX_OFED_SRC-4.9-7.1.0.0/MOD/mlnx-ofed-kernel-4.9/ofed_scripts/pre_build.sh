@@ -36,12 +36,12 @@ if [ -e ./configure.mk.kernel ]; then
     make distclean
 fi
 
-NJOBS=`MLXNUMC=$(grep ^processor /proc/cpuinfo | wc -l) && echo $(($MLXNUMC<16?$MLXNUMC:16))`
+NJOBS=`MLXNUMC=$(grep ^processor /proc/cpuinfo | wc -l) && echo $(($MLXNUMC))`
 
 find compat -type f -exec touch -t 200012201010 '{}' \; || true
 ./configure --kernel-version=$kernelver --kernel-sources=$kernel_source_dir ${config_flag} --with-njobs=${NJOBS:-1}
 
-make -j${NJOBS:-1}
+KCFLAGS="-Wno-implicit-fallthrough" make -j${NJOBS:-1}
 
 ./ofed_scripts/install_helper
 
