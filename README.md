@@ -26,7 +26,9 @@ cd MLNX_OFED_LINUX-4.9-7.1.0.0-ubuntu22.04-x86_64
 
 # Evaluated Systems
 
-Testbed: 
+Testbed: Two machines with ConnectX-6 NICs, Ubuntu 22.04 with Linux kernel 5.15.0-134-generic.
+
+* `ib_write_bw`.
 
 * [Rowan](https://github.com/thustorage/rowan), which uses **shared receive queue + multi-packet receive queue** (features not in OFED 5+) for shared log.
 
@@ -35,6 +37,8 @@ Testbed:
 **Not tested:**
 
 * mlnx_nvme functionality.
+
+* OpenMPI, UCX, and other high-level interfaces.
 
 Feedback is welcome if you have tested other features in your environment.
 
@@ -47,6 +51,8 @@ Generally, I only modify code that fail to compile in Linux 5.15 (because of cha
 * For other modules except for OFED kernel, the modifications are shown in commit `976455b`.
 
 * For OFED kernel, I directly apply the backports and then make modifications, the modifications are in commit `f76378`.
+
+* Misc: UCX fails to compile. But the package in OFED_LINUX could be installed.
 
 # Supporting Other Kernel Versions
 
