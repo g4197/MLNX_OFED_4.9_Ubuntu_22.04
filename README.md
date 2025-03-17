@@ -26,19 +26,21 @@ cd MLNX_OFED_LINUX-4.9-7.1.0.0-ubuntu22.04-x86_64
 ./mlnxofedinstall
 ```
 
-# Tested Systems and Features
+# Tested and Untested Features
 
-The following configurations and applications have been successfully tested:
+**Testbed:** Two machines equipped with ConnectX-6 NICs, running Ubuntu 22.04 with Linux kernel 5.15.0-134-generic.
 
-* **Testbed:** Two machines equipped with ConnectX-6 NICs, running Ubuntu 22.04 with Linux kernel 5.15.0-134-generic.
+**Tested Features:**
 
-* **`ib_write_bw`:**  The InfiniBand write bandwidth test utility.
+* **`ib_write_bw`:**  The InfiniBand write bandwidth test utility, for basic `ibverbs`.
 
 * **[Rowan](https://github.com/thustorage/rowan):** A shared log implementation utilizing **multi-packet receive queues** (features not present in OFED 5+).
 
-* **[Deft](https://github.com/thustorage/deft):** A tree index designed for disaggregated memory systems.
+* **[Deft](https://github.com/thustorage/deft):** A tree index designed for disaggregated memory systems utilizing **masked CAS** (features not present in OFED 5+).
 
 **Untested Features:**
+
+* Other features supported by OFED 4.9.
 
 * `mlnx_nvme` functionality.
 
