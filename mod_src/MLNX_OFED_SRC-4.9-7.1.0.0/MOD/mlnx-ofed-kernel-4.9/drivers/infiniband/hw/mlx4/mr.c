@@ -33,7 +33,6 @@
 
 #include <linux/slab.h>
 #include <rdma/ib_user_verbs.h>
-#include <linux/mm.h>
 
 #include "mlx4_ib.h"
 
@@ -381,7 +380,7 @@ static struct ib_umem *mlx4_get_umem_mr(struct ib_udata *udata, u64 start,
 	if (!ib_access_writable(access_flags)) {
 		struct vm_area_struct *vma;
 
-		mmap_read_lock(current->mm);
+		down_read(&current->mm->mmap_sem);
 		/*
 		 * FIXME: Ideally this would iterate over all the vmas that
 		 * cover the memory, but for now it requires a single vma to
@@ -396,7 +395,7 @@ static struct ib_umem *mlx4_get_umem_mr(struct ib_udata *udata, u64 start,
 			access_flags |= IB_ACCESS_LOCAL_WRITE;
 		}
 
-		mmap_read_unlock(current->mm);
+		up_read(&current->mm->mmap_sem);
 	}
 
 	return ib_umem_get(udata, start, length, access_flags, 0, peer_mem_flags);

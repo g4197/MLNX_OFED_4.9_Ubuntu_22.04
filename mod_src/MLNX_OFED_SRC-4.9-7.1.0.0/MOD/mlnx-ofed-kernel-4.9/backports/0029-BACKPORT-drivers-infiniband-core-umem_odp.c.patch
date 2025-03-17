@@ -235,7 +235,7 @@ Change-Id: I0d7ec33ae7f5197f1743af46234b8168fcb1a22d
 @@ -455,6 +580,11 @@ int ib_umem_odp_get(struct ib_umem_odp *
  		h = hstate_vma(vma);
  		umem->page_shift = huge_page_shift(h);
- 		mmap_read_unlock(mm);
+ 		up_read(&mm->mmap_sem);
 +#if !defined(HAVE_FOLL_LONGTERM) && !defined(HAVE_GET_USER_PAGES_LONGTERM)
 +		umem->hugetlb = 1;
 +	} else {
@@ -279,20 +279,20 @@ Change-Id: I0d7ec33ae7f5197f1743af46234b8168fcb1a22d
 +				flags, local_page_list, NULL);
 +#endif
 +#else
-+				access_mask & ODP_WRITE_ALLOWED_BIT,
++				access_mask & ODP_WRITE_ALLOWED_BIT, 0,
 +				local_page_list, NULL);
 +#endif
 +#else
-+		npages = get_user_pages(
++		npages = get_user_pages(owning_process, owning_mm,
 +				user_virt, gup_num_pages,
 +#ifdef HAVE_GET_USER_PAGES_7_PARAMS
 +				flags, local_page_list, NULL);
 +#else
 +				access_mask & ODP_WRITE_ALLOWED_BIT,
-+				local_page_list, NULL);
++				0, local_page_list, NULL);
 +#endif
 +#endif
- 		mmap_read_unlock(owning_mm);
+ 		up_read(&owning_mm->mmap_sem);
  
  		if (npages < 0) {
 @@ -742,9 +896,14 @@ int ib_umem_odp_map_dma_pages(struct ib_

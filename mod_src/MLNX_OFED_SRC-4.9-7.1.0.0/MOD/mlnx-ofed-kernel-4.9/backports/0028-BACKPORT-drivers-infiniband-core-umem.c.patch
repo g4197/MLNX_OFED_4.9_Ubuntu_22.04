@@ -113,7 +113,7 @@ Change-Id: I51485baf119b4bc9bb31be5261ad3455376fba81
  	new_pinned = atomic64_add_return(npages, &mm->pinned_vm);
  	if (new_pinned > lock_limit && !capable(CAP_IPC_LOCK)) {
 +#else
-+	mmap_write_lock(mm);
++	down_write(&mm->mmap_sem);
 +#ifdef HAVE_PINNED_VM
 +	if (check_add_overflow(mm->pinned_vm, npages, &new_pinned) ||
 +	    (new_pinned > lock_limit && !capable(CAP_IPC_LOCK))) {
@@ -126,7 +126,7 @@ Change-Id: I51485baf119b4bc9bb31be5261ad3455376fba81
 +#ifdef HAVE_ATOMIC_PINNED_VM
  		atomic64_sub(npages, &mm->pinned_vm);
 +#else
-+		mmap_write_unlock(mm);
++		up_write(&mm->mmap_sem);
 +#ifdef HAVE_PINNED_VM
  		pr_debug("%s: requested to lock(%lu) while limit is(%lu)\n",
  		       __func__, new_pinned, lock_limit);
@@ -142,7 +142,7 @@ Change-Id: I51485baf119b4bc9bb31be5261ad3455376fba81
 +#ifdef HAVE_PINNED_VM
 +	mm->pinned_vm = new_pinned;
 +#endif /* HAVE_PINNED_VM */
-+	mmap_write_unlock(mm);
++	up_write(&mm->mmap_sem);
 +#endif /* HAVE_ATOMIC_PINNED_VM */
  	cur_base = addr & PAGE_MASK;
  
@@ -168,7 +168,7 @@ Change-Id: I51485baf119b4bc9bb31be5261ad3455376fba81
 +		if (ret < 0)
 +			goto umem_release;
 +#else
- 		mmap_read_lock(mm);
+ 		down_read(&mm->mmap_sem);
 +#ifdef HAVE_FOLL_LONGTERM
  		ret = get_user_pages(cur_base,
  				     min_t(unsigned long, npages,
@@ -212,7 +212,7 @@ Change-Id: I51485baf119b4bc9bb31be5261ad3455376fba81
 +				     PAGE_SIZE / sizeof(struct page *)));
 +#endif
 +#ifndef HAVE_UNPIN_USER_PAGES_DIRTY_LOCK_EXPORTED
- 			mmap_read_unlock(mm);
+ 			up_read(&mm->mmap_sem);
 +#endif
  			goto umem_release;
  		}
@@ -235,7 +235,7 @@ Change-Id: I51485baf119b4bc9bb31be5261ad3455376fba81
 +		}
 +#endif
 +#ifndef HAVE_UNPIN_USER_PAGES_DIRTY_LOCK_EXPORTED
- 		mmap_read_unlock(mm);
+ 		up_read(&mm->mmap_sem);
 +#endif
  	}
  
@@ -271,13 +271,13 @@ Change-Id: I51485baf119b4bc9bb31be5261ad3455376fba81
 +#ifdef HAVE_ATOMIC_PINNED_VM
  	atomic64_sub(ib_umem_num_pages(umem), &mm->pinned_vm);
 +#else
-+	mmap_write_lock(mm);
++	down_write(&mm->mmap_sem);
 +#ifdef HAVE_PINNED_VM
 +	mm->pinned_vm -= ib_umem_num_pages(umem);
 +#else
 +	mm->locked_vm -= ib_umem_num_pages(umem);
 +#endif /* HAVE_PINNED_VM */
-+	mmap_write_unlock(mm);
++	up_write(&mm->mmap_sem);
 +#endif /* HAVE_ATOMIC_PINNED_VM */
  out:
 +#if !defined(HAVE_FOLL_LONGTERM) && !defined(HAVE_GET_USER_PAGES_LONGTERM)
@@ -294,13 +294,13 @@ Change-Id: I51485baf119b4bc9bb31be5261ad3455376fba81
 +#ifdef HAVE_ATOMIC_PINNED_VM
  	atomic64_sub(ib_umem_num_pages(umem), &umem->owning_mm->pinned_vm);
 +#else
-+	mmap_write_lock(&umem->owning_mm);
++	down_write(&umem->owning_mm->mmap_sem);
 +#ifdef HAVE_PINNED_VM
 +	umem->owning_mm->pinned_vm -= ib_umem_num_pages(umem);
 +#else
 +	umem->owning_mm->locked_vm -= ib_umem_num_pages(umem);
 +#endif /* HAVE_PINNED_VM */
-+	mmap_write_unlock(umem->owning_mm);
++	up_write(&umem->owning_mm->mmap_sem);
 +#endif /*HAVE_ATOMIC_PINNED_VM*/
 +
  	__ib_umem_release_tail(umem);

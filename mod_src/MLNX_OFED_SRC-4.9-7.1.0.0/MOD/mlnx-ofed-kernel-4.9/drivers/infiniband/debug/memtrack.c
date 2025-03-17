@@ -1123,8 +1123,8 @@ static ssize_t memtrack_read(struct file *filp,
 	}
 }
 
-static const struct proc_ops memtrack_proc_fops = {
-	.proc_read = memtrack_read,
+static const struct file_operations memtrack_proc_fops = {
+	.read = memtrack_read,
 };
 
 static const char *memtrack_proc_entry_name = "mt_memtrack";

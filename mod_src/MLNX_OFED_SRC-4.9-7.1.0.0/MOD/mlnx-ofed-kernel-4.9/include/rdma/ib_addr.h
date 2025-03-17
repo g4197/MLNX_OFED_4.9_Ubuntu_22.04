@@ -48,7 +48,6 @@
 #include <rdma/ib_verbs.h>
 #include <rdma/ib_pack.h>
 #include <net/net_namespace.h>
-#include <linux/ethtool.h>
 
 /**
  * struct rdma_dev_addr - Contains resolved RDMA hardware addresses

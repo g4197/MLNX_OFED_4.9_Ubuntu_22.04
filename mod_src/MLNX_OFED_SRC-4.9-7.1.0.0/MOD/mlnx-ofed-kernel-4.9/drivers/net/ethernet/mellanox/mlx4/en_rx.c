@@ -631,9 +631,9 @@ fail:
 	while (nr > 0) {
 		nr--;
 #ifndef CONFIG_COMPAT_LRO_ENABLED
-		__skb_frag_unref(skb_shinfo(skb)->frags + nr, false);
+		__skb_frag_unref(skb_shinfo(skb)->frags + nr);
 #else
-		__skb_frag_unref(skb_frags_rx + nr, false);
+		__skb_frag_unref(skb_frags_rx + nr);
 #endif
 	}
 	return 0;

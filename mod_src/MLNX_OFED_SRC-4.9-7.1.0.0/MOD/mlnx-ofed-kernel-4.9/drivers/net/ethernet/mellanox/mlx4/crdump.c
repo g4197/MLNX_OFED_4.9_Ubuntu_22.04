@@ -388,12 +388,12 @@ static int crdump_proc_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static const struct proc_ops crdump_proc_fops = {
-	// .owner		= THIS_MODULE,
-	.proc_open		= crdump_proc_open,
-	.proc_read		= seq_read,
-	.proc_lseek		= seq_lseek,
-	.proc_release	= seq_release,
+static const struct file_operations crdump_proc_fops = {
+	.owner		= THIS_MODULE,
+	.open		= crdump_proc_open,
+	.read		= seq_read,
+	.llseek		= seq_lseek,
+	.release	= seq_release,
 };
 
 int mlx4_crdump_init(struct mlx4_dev *dev)

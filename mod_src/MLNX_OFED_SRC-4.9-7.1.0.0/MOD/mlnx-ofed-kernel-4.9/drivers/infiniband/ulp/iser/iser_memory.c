@@ -612,7 +612,7 @@ iser_set_dif_domain(struct scsi_cmnd *sc, struct ib_sig_attrs *sig_attrs,
 #ifdef HAVE_SCSI_CMND_PROT_FLAGS
 	domain->sig.dif.pi_interval = scsi_prot_interval(sc);
 #ifdef HAVE_T10_PI_REF_TAG
-	domain->sig.dif.ref_tag = t10_pi_ref_tag(scsi_cmd_to_rq(sc));
+	domain->sig.dif.ref_tag = t10_pi_ref_tag(sc->request);
 #else
 	domain->sig.dif.ref_tag = scsi_prot_ref_tag(sc);
 #endif

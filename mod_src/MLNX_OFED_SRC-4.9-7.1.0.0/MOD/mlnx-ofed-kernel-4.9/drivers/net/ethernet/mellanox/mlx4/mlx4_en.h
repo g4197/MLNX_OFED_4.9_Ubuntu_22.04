@@ -33,7 +33,7 @@
 
 #ifndef _MLX4_EN_H_
 #define _MLX4_EN_H_
-#include <linux/ethtool.h>
+
 #include <linux/bitops.h>
 #include <linux/compiler.h>
 #include <linux/list.h>

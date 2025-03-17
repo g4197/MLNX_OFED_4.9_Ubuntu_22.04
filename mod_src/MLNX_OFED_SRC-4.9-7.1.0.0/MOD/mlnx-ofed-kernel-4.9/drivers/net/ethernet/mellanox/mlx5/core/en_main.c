@@ -5191,9 +5191,9 @@ static netdev_features_t mlx5e_tunnel_features_check(struct mlx5e_priv *priv,
 	struct udphdr *udph;
 #endif
 	u8 proto;
- 
+#ifdef HAVE_KERNEL_WITH_VXLAN_SUPPORT_ON
 	u16 port;
- 
+#endif
 
 	switch (vlan_get_protocol(skb)) {
 	case htons(ETH_P_IP):
